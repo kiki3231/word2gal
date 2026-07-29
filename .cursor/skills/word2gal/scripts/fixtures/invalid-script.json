@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "title": "故意非法 fixture",
+    "stylePack": "daily-heal"
+  },
+  "nodes": [
+    {
+      "type": "scene",
+      "background": "music_room"
+    },
+    {
+      "id": "dup",
+      "type": "narration",
+      "text": "第一段旁白。"
+    },
+    {
+      "id": "dup",
+      "type": "narration",
+      "text": "重复 id。"
+    },
+    {
+      "id": "bad_dialogue",
+      "type": "dialogue",
+      "speaker": "小悠",
+      "text": "缺少 emotion 字段。"
+    },
+    {
+      "id": "bad_choice",
+      "type": "choice",
+      "options": [
+        { "label": "去不存在的节点", "goto": "no_such_node" }
+      ]
+    }
+  ]
+}
