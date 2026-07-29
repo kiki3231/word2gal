@@ -202,16 +202,35 @@
       position: absolute; inset: 0;
       background: rgba(8,6,5,0.66);
       align-items: center; justify-content: center;
+      flex-direction: column;
+      gap: 1.4rem;
       color: var(--ink);
       font-family: "Noto Serif SC", serif;
       font-size: clamp(1.3rem, 2.8vw, 1.9rem);
       text-align: center;
       padding: 2rem;
       z-index: 7;
-      white-space: pre-wrap;
       line-height: 1.75;
     }
     #ending-banner.show { display: flex; animation: fadeIn 0.5s ease; }
+    #ending-text { white-space: pre-wrap; max-width: 36rem; }
+    #btn-restart {
+      border: 1px solid var(--gold);
+      border-radius: 999px;
+      padding: 0.7rem 1.6rem;
+      background: color-mix(in srgb, var(--panel) 85%, var(--gold));
+      color: var(--ink);
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei UI", sans-serif;
+      font-size: 1.05rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+    #btn-restart:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @media (max-width: 720px) {
       #sprite { right: 50%; transform: translateX(50%); max-width: 85%; height: 62%; bottom: 20%; }
@@ -238,7 +257,10 @@
           <div id="hint">▼</div>
         </div>
       </div>
-      <div id="ending-banner"></div>
+      <div id="ending-banner">
+        <div id="ending-text"></div>
+        <button type="button" id="btn-restart">重新开始</button>
+      </div>
     </div>
   </div>
 
