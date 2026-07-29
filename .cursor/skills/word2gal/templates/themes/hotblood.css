@@ -1,0 +1,10 @@
+/* hotblood — 燃向：赤黑强对比 */
+:root {
+  --ink: #fff0ea;
+  --ink-dim: #d9a090;
+  --gold: #ff5a3c;
+  --panel: rgba(22, 8, 8, 0.9);
+  --panel-edge: rgba(255, 90, 60, 0.5);
+  --page-bg: #120606;
+  --name-ink: #1a0806;
+}

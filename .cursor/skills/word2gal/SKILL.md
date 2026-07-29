@@ -53,6 +53,7 @@ description: >-
 - 抽取：`reference/extraction.md`
 - 网查形象：`reference/character-lookup.md`
 - 情绪成色与拟声：`reference/emotion-and-sfx.md`
+- 界面主题：`reference/ui-themes.md`（按 mood 自动选）
 - 角色卡：`reference/character-card.md`
 - 剧本结构：`reference/script-schema.md`
 - 打包：`reference/assets-and-bake.md`
@@ -119,12 +120,19 @@ node .cursor/skills/word2gal/scripts/validate-script.mjs <script.json>
 
 ### 6. Bake 成品
 
-复制 `templates/player-basic.html`（用户要加强演出则用 advanced），**仅**替换：
+复制 `templates/player-basic.html`（用户要加强演出则用 advanced），替换：
 
-- `__SCRIPT_JSON__`
-- `__ASSETS_JSON__`
+- `__SCRIPT_JSON__` / `__ASSETS_JSON__`
+- `__THEME_ID__` / `__THEME_CSS__`（按 `meta.mood` 读入 `templates/themes/`，见 `ui-themes.md`）
 
-输出到用户指定路径，或 `output/<title>/index.html`（可带相对路径 `assets/`）。
+推荐命令：
+
+```bash
+node .cursor/skills/word2gal/scripts/cut-sprite.mjs --dir <assetsDir>
+node .cursor/skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
+```
+
+输出到用户指定路径，或 `output/<title>/index.html`（近全屏游玩区）。
 
 ### 7. 交付前自检（对照验收标准）
 

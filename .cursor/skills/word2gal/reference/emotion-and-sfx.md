@@ -18,6 +18,8 @@
 
 将成色写入剧本 `meta.mood`（字符串，与 `stylePack` 并列；校验器若尚未强制该字段，仍应写入供打包摘要使用）。
 
+**界面主题：** `meta.mood` 同时决定游玩 UI 主题，见 `reference/ui-themes.md`（自动注入对应 `templates/themes/*.css`）。
+
 ## B. 本篇表情差分清单
 
 1. 从成色表取「常见差分倾向」为候选  
