@@ -15,6 +15,7 @@ Agent 在 Skill 工作流中生成的剧本结构；**用户不手写此 JSON**�
 |------|------|------|
 | `title` | string | 是 |
 | `stylePack` | string | 是（风格包 id，如 `daily-heal`） |
+| `mood` | string | 强烈建议（文章核心情绪成色，见 `emotion-and-sfx.md`） |
 
 ## `nodes[]` 公共字段
 
@@ -56,9 +57,11 @@ Agent 在 Skill 工作流中生成的剧本结构；**用户不手写此 JSON**�
 | `emotion` | string | 是，枚举见下 |
 | `voiceTag` | string | 否（短反应音标签，如 `gasp`） |
 
-**`emotion` 枚举（固定）：**
+**`emotion` 枚举（本篇实际只用成色裁剪后的子集）：**
 
-`neutral` | `smile` | `surprise` | `sad` | `angry`
+`neutral` | `smile` | `laugh` | `surprise` | `sad` | `cry` | `angry` | `tense` | `soft_shy`
+
+校验器允许以上全集；Agent 不得使用未出现在本篇差分清单中的值。
 
 ### `choice`
 
@@ -83,7 +86,7 @@ Agent 在 Skill 工作流中生成的剧本结构；**用户不手写此 JSON**�
 
 1. 每个节点的 `id` 非空且在 `nodes` 内**唯一**。
 2. 所有 `choice.options[].goto` 必须指向**已存在**的节点 `id`。
-3. `dialogue.emotion` 必须为上述五值之一。
+3. `dialogue.emotion` 必须为上述枚举之一，且应属于本篇情绪差分清单。
 
 ## 校验命令
 

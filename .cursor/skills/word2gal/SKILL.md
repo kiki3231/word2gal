@@ -1,78 +1,115 @@
 ---
 name: word2gal
 description: >-
-  将自然语言同人剧情生成可运行的单文件 HTML 视觉小说（对话框、立绘、选项、短反应音）。
+  将用户自然语言文章（含角色、场景、对话）提取为可玩 HTML 视觉小说：
+  网查角色通行长相生成立绘与情绪差分，并按文章设定挂拟声短音。
   在用户提到 Word2Gal、同人网页视觉小说、用文字生成 galgame/视觉小说 HTML 时使用。
 ---
 
 # Word2Gal
 
-面向同人创作者的 Cursor Skill：用户只写自然语言，你产出可双击打开的 HTML 视觉小说。
+面向同人创作者的 Cursor Skill：用户只交**一篇自然语言文章**，你产出可直接游玩的 HTML 视觉小说。
+
+## 验收标准（必须全部满足）
+
+1. **抽取成戏**：从文章准确提取角色、场景、对话（及文中写明的分支），做成可玩 HTML。  
+2. **立绘跟脸**：按文中人物去**网上查通行长相/设定**，再生成符合该长相的立绘；禁止仅凭臆造乱画。  
+3. **情绪差分**：先判断文章**核心情绪成色**，再为本篇制作若干常用表情差分（子集来自成色，不是无脑固定五件套硬套）。  
+4. **拟声短音**：只要笑声/哭声/生气等拟声反应音；**严格按文章出现的情绪与动作**选用，禁止全文 TTS，禁止塞无关音效。
+
+用户侧全程自然语言；禁止要求用户填写 JSON、标记语法或资源路径。
 
 ## 硬约束
 
-- 用户只提供自然语言；禁止要求用户填写 JSON/标记语法/资源路径
-- 不对白全文 TTS；仅标签化短反应音
-- 立绘必须走风格包参数卡；禁止自由长描述直出
-- 禁止改写播放器核心 JS；只填充模板占位符 `__SCRIPT_JSON__` / `__ASSETS_JSON__`
-- 素材失败 → 默认资源，HTML 仍须可玩
-- Windows：只写入带常见扩展名的文件（`.html` `.md` `.json` `.svg` `.png` `.mjs` 等），禁止无扩展名文件
+- 不对白全文 TTS；仅文章驱动的拟声 `voiceTag`
+- 立绘：先检索参考形象，再风格包生成；无检索结果才回退文内描写，并必须口头告知用户
+- 禁止改写播放器核心 JS；只替换 `__SCRIPT_JSON__` / `__ASSETS_JSON__`
+- 素材失败 → defaults，HTML 仍须可玩
+- Windows：只写带常见扩展名的文件，禁止无扩展名文件
 
 ## 参考文档（内部）
 
-- 剧本结构：`reference/script-schema.md`
+- 抽取：`reference/extraction.md`
+- 网查形象：`reference/character-lookup.md`
+- 情绪成色与拟声：`reference/emotion-and-sfx.md`
 - 角色卡：`reference/character-card.md`
-- 打包与自检：`reference/assets-and-bake.md`
+- 剧本结构：`reference/script-schema.md`
+- 打包：`reference/assets-and-bake.md`
 - 风格包：`style-packs/daily-heal/prompt.md`
-- 模板：`templates/player-basic.html`（模式二：`templates/player-advanced.html`）
-- 输入示例：`examples/minimal-input.md`
+- 模板：`templates/player-basic.html`（加强演出：`player-advanced.html`）
+- 示例：`examples/minimal-input.md`、`examples/sample-run.md`
 
-## 工作流（逐步执行）
+## 工作流（按序执行，不可跳步）
 
-### 1. 收集自然语言
+### 1. 接收文章并抽取关键信息
 
-确认剧情、角色、是否要分支/结局。含糊时用自然语言追问 1～2 句，或默认单线。
+按 `reference/extraction.md`，从用户文章中抽出：
 
-### 2. 编译内部剧本 JSON
+- 角色列表（名字、关系、外貌/性格线索）
+- 场景列表（地点、时间氛围）
+- 对话与旁白顺序
+- 文中明确的选项/多结局（没有则单线）
 
-按 `reference/script-schema.md` 生成节点（scene / narration / dialogue / choice / ending）。  
-dialogue 必有 `emotion`；可选 `voiceTag`。  
-然后运行：
+含糊处用**自然语言**追问 1～2 句；用户不补则给安全默认，并在交付摘要中说明假设。
+
+可用自然语言向用户复述一份「将做成游戏的大纲」再继续（用户若说直接做则跳过确认）。
+
+### 2. 判定核心情绪成色 + 本篇差分/拟声清单
+
+按 `reference/emotion-and-sfx.md`：
+
+- 定 1 个主成色（如日常暖、虐心、悬疑、燃向等）
+- 列出本篇需要的 `expressions` 子集（通常 3～5 个）
+- 列出本篇需要的拟声标签（只来自文中笑/哭/怒/惊等，无则可不挂音）
+
+### 3. 网查角色长相 → 角色卡
+
+对每个主要角色，按 `reference/character-lookup.md`：
+
+1. 用可用的联网/搜索能力查该角色（或同人设定）的**通行形象**  
+2. 选定 1 张最符合的参考描述/参考图  
+3. 写入角色卡短参数 + `referenceNote`（查到了什么）  
+4. 查不到：用文章内描写蒸馏参数，标记 `lookup=fallback`，交付时必须告知  
+
+禁止跳过检索直接自由发挥（除非环境明确无联网，则全员 fallback 并说明）。
+
+### 4. 编译内部剧本 JSON
+
+按 `reference/script-schema.md` 生成节点。  
+`dialogue.emotion` / `voiceTag` **只能**来自第 2 步清单；文中无对应情绪则 `neutral` 或静音。
 
 ```bash
 node .cursor/skills/word2gal/scripts/validate-script.mjs <script.json>
 ```
 
-不通过则先修好再继续。
+不通过则先修好。
 
-### 3. 蒸馏角色卡并选用风格包
+### 5. 生成立绘差分 / 背景 / 拟声
 
-按 `reference/character-card.md` 从人设散文抽出短参数。  
-默认风格包 `daily-heal`。
+- 立绘：风格包 prompt + **参考形象约束** + 本篇 expressions；同一角色保持一致  
+- 背景：按抽取的场景生成或选用，贴合文章氛围  
+- 拟声：只为清单内标签生成/选用短音  
 
-蒸馏示例：
+失败重试 ≤2 → `style-packs/.../defaults/` 或静音。
 
-- 「黑长马尾、说话很快的女生小悠」→ hair/vibe/voiceProfile 短参数，而不是整段散文进文生图。
+### 6. Bake 成品
 
-### 4. 生成或回退立绘/短音
+复制 `templates/player-basic.html`（用户要加强演出则用 advanced），**仅**替换：
 
-严格使用 `style-packs/<pack>/prompt.md`。  
-失败重试 ≤2 → `style-packs/.../defaults/`。  
-无音频能力则短音省略（静音）。
+- `__SCRIPT_JSON__`
+- `__ASSETS_JSON__`
 
-### 5. Bake 成品
+输出到用户指定路径，或 `output/<title>/index.html`（可带相对路径 `assets/`）。
 
-复制 `templates/player-basic.html`，只替换两个占位符（见 `reference/assets-and-bake.md`），写出 `.html`。  
-若用户要「加强演出」且存在 advanced 模板，则换该模板，剧本不变。
+### 7. 交付前自检（对照验收标准）
 
-### 6. 自检清单
-
-- [ ] 未要求用户填格式  
-- [ ] 校验脚本通过  
-- [ ] 缺资源有回退、不白屏  
-- [ ] 浏览器可玩完分支  
-- [ ] 用自然语言说明哪些素材用了默认占位  
+- [ ] 文章中的主要角色、场景、对话都进了可玩流程  
+- [ ] 每个主角说明了形象来源：网查参考 / 文内回退  
+- [ ] 表情差分集合能对应文章情绪成色  
+- [ ] 拟声仅来自文章设定，无全文 TTS  
+- [ ] 校验通过；缺资源有回退；浏览器可玩  
+- [ ] 用自然语言摘要告知：成色、差分列表、声音列表、哪些用了默认占位  
 
 ## 模式二
 
-用户要求加强演出时：同一剧本填入 `templates/player-advanced.html`。若文件缺失，先用 basic 并说明。
+同一剧本填入 `templates/player-advanced.html`。文件缺失则用 basic 并说明。

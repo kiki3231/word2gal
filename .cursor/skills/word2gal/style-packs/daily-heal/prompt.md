@@ -1,46 +1,48 @@
-# Style Pack: daily-heal（日常治愈）
+# Style Pack: daily-heal
 
-面向同人短篇的日系半身立绘。Agent 出图时**必须**套用本节，不得自由发挥长描述。
+日系半身立绘壳。出图时套用；**形象内容**必须来自网查参考或文内回退短参数，不得自由换脸。
 
-## 正提示（固定骨架）
+## 正提示骨架
 
 ```
 anime style, visual novel character portrait, bust shot half body,
-clean lineart, soft lighting, gentle colors, transparent background,
+clean lineart, soft lighting, transparent or plain light background,
 looking at viewer, consistent character design,
-{hair}, {eyes} eyes, wearing {outfit}, {vibe} expression mood: {emotion}
+matching reference appearance closely,
+{hair}, {eyes} eyes, wearing {outfit}, {vibe}, expression: {emotion_phrase}
 ```
 
-将 `{hair}` `{eyes}` `{outfit}` `{vibe}` `{emotion}` 替换为角色卡短参数。
+若有参考图：优先 img2img / reference 约束，再叠加短参数。
 
-## 负提示（固定）
+## 负提示
 
 ```
 extra faces, extra limbs, extra hands, deformed hands, text, subtitle,
 watermark, logo, realistic photo, 3d render, low quality, blurry,
+wrong hair color, different person from reference,
 full body crowded background, speech bubble
 ```
 
-## 表情差分
+## 表情短语（按本篇清单选用）
 
-对同一角色卡，只替换 `emotion` 对应词：
-
-| emotion | 提示词追加 |
-|---------|------------|
+| emotion | emotion_phrase |
+|---------|----------------|
 | neutral | calm neutral face |
 | smile | soft smile |
+| laugh | bright laughing face |
 | surprise | surprised open eyes |
 | sad | sad downturned eyes |
+| cry | tearful crying face |
 | angry | mild frown angry |
+| tense | uneasy tense expression |
+| soft_shy | shy soft blush |
 
-保持 hair/eyes/outfit/vibe 不变；有参考图/种子则复用。
+未列出的 emotion → 回退 neutral。
 
-## UI / 节奏（本包）
+## UI 提示
 
-- 对话框：圆角浅色底、深色字
-- 文本节奏：中等打字速度
-- 默认转场：简单淡入
+本包偏日常暖光；若 `meta.mood` 为 bittersweet/tense，背景与色调应随之偏冷/偏暗（仍用同一立绘规范）。
 
 ## 失败回退
 
-重试 ≤2 次仍不合格 → 使用 `defaults/` 下占位图，剧情照常可玩。
+重试 ≤2 → `defaults/`，剧情可玩。

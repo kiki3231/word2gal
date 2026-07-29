@@ -4,7 +4,17 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-const EMOTIONS = new Set(["neutral", "smile", "surprise", "sad", "angry"]);
+const EMOTIONS = new Set([
+  "neutral",
+  "smile",
+  "laugh",
+  "surprise",
+  "sad",
+  "cry",
+  "angry",
+  "tense",
+  "soft_shy",
+]);
 const NODE_TYPES = new Set([
   "scene",
   "narration",

@@ -1,47 +1,37 @@
 # 资源命名与打包（Bake）
 
-> 内部约定。用户只提供自然语言；Agent 完成下列步骤后输出 HTML。
+> 内部约定。用户只提供自然语言文章。
 
-## 资源 key 命名
+## 资源 key
 
-| 类型 | key 格式 | 示例 |
-|------|----------|------|
-| 立绘 | `char_{id}_{emotion}` → assets.chars | `you_surprise` |
-| 背景 | `bg_{sceneId}` → assets.bgs | `music_room` |
-| 短音 | `sfx_{voiceTag}` → assets.sfx | `surprised` |
+| 类型 | assets 路径 | 示例 |
+|------|-------------|------|
+| 立绘 | `chars.{id}_{emotion}` | `you_surprise` |
+| 背景 | `bgs.{sceneKey}` | `music_room` |
+| 拟声 | `sfx.{voiceTag}` | `soft_laugh` |
 
-另需：
+另需：`speakerToId`、`chars.default`、`bgs.default`。
 
-- `assets.speakerToId`：显示名 → 角色 id
-- `chars.default` / `bgs.default`：回退图（可用风格包 defaults）
+## 生成顺序（对照验收标准）
 
-## 推荐 voiceTag
+1. 已完成抽取、成色、网查角色卡  
+2. 仅为**本篇 expressions** 生成差分立绘（参考形象约束 + 风格包）  
+3. 仅为**本篇拟声清单**生成/选用短音  
+4. 场景背景按文章场景与成色生成  
+5. 失败 ≤2 次 → defaults / 静音  
 
-`soft_affirm` `surprised` `gasp` `sigh` `soft_laugh` `angry_huff`
+## Bake
 
-无音频能力或不达标 → 该 tag 不写入或播静音，**不阻断**。
-
-## 生成与回退
-
-1. 按 `style-packs/<pack>/prompt.md` + 角色卡出立绘/表情差分  
-2. 失败重试 ≤2 → 使用 defaults  
-3. 背景：风格包场景或默认 `bg_default`  
-4. 短音：按标签生成或跳过  
-
-## Bake 步骤
-
-1. 用 `scripts/validate-script.mjs` 校验内部剧本 JSON  
-2. 复制 `templates/player-basic.html`（模式二用 `player-advanced.html`）  
-3. **仅**替换：
-   - `__SCRIPT_JSON__` → 剧本 JSON 文本  
-   - `__ASSETS_JSON__` → 资源 JSON（data URL 或相对路径字符串）  
-4. **禁止**修改播放器逻辑 `<script>`（非两个 JSON 标签内的代码）  
-5. 输出到用户指定路径，或 `output/<title>.html`  
+1. `validate-script.mjs` 通过  
+2. 复制 `templates/player-basic.html`（或 advanced）  
+3. **仅**替换 `__SCRIPT_JSON__`、`__ASSETS_JSON__`  
+4. 禁止改播放器逻辑  
+5. 输出 `output/<title>/index.html` + 可选 `assets/`  
 
 ## 自检清单
 
-- [ ] 未要求用户填写 JSON / 路径 / 标记语法  
-- [ ] `validate-script.mjs` 通过  
-- [ ] 缺立绘/音时有 default 或静音，页面不白屏  
-- [ ] Chrome/Edge 可打开并走完分支  
-- [ ] 用自然语言摘要告知用户哪些素材用了默认占位  
+- [ ] 未要求用户填格式  
+- [ ] 主角均注明 lookup 来源  
+- [ ] 差分 ⊆ 成色裁剪清单；拟声 ⊆ 文章依据  
+- [ ] 无全文 TTS  
+- [ ] 校验通过；可玩；摘要已用自然语言说明回退项  

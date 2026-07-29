@@ -1,33 +1,25 @@
-# 样例跑通（基于 minimal-input）
+# 样例跑通（对照四条验收标准）
 
 ## 用户输入
 
-见 `examples/minimal-input.md`（自然语言剧情 + 二选一分支）。
+见 `examples/minimal-input.md`（自然语言文章：角色、场景、对话、二选一）。
 
-## Agent 内部产物摘要（用户不手写）
+## Agent 应按新工作流产出
 
-### 剧本
+1. **抽取**：角色小悠/阿凛；场景旧音乐室黄昏；对话链；二选一分支  
+2. **成色**：`warm_daily`（带一点心事）→ 差分如 `neutral/surprise/smile`；拟声如文中惊讶 → `gasp`  
+3. **网查**：若可检索同人/通行形象则 `lookup=web`；否则按文内「马尾/话少校服」`fallback` 并告知  
+4. **剧本 + 校验** → Bake → `output/playable/` 或新目录  
 
-- meta.title：音乐室匿名信；stylePack：daily-heal  
-- 节点：scene → narration → 小悠 dialogue(surprise) → 阿凛 dialogue(neutral) → choice → 两个 ending  
-- 校验：`node scripts/validate-script.mjs scripts/fixtures/valid-script.json` → OK  
+## 现有可玩样例
 
-### 角色卡
+`output/playable/index.html` 为已 bake 的测试案例（验证播放器）。  
+**正式跑 Skill 时**须走完整：抽取 → 成色 → 网查 → 生成 → bake，不能只复制旧 assets 假装完成验收。
 
-| id | displayName | hair / vibe | voiceProfile |
-|----|-------------|-------------|--------------|
-| you | 小悠 | black long ponytail / energetic | cheerful |
-| rin | 阿凛 | short dark / calm | calm_low |
+## 验收口述模板（交付用户时）
 
-### 成品
-
-- 模板：`templates/player-basic.html`  
-- **可看版演示：** `output/playable/index.html`（立绘抠图 + 音乐室背景 + 短反应音；相对路径资源）  
-- 重新打包：`node .cursor/skills/word2gal/scripts/bake-demo.mjs`  
-
-## 验收步骤
-
-1. 用浏览器打开 `output/playable/index.html`（不要只拷走 html 而丢掉 `assets/`）  
-2. 点击/空格推进：应看到真实立绘、场景背景、对话框样式  
-3. 小悠惊讶句可听到短反应音（需先点击一次解锁音频）  
-4. 走完两个分支结局；试存读档 
+- 识别到的角色/场景/分支：…  
+- 形象来源：角色A=网查…；角色B=文内回退…  
+- 情绪成色与差分：…  
+- 拟声列表与依据：…  
+- 默认占位：…  
