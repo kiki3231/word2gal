@@ -23,9 +23,22 @@ function resolveTheme(mood) {
   return THEMES.has(m) ? m : "warm_daily";
 }
 
+/** Windows-safe filename from work title */
+function titleToFilename(title) {
+  const raw = String(title || "未命名作品").trim() || "未命名作品";
+  const cleaned = raw
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/[. ]+$/g, "")
+    .slice(0, 80);
+  return (cleaned || "未命名作品") + ".html";
+}
+
 function bake(scriptPath, assetsDir, outDir) {
   const script = JSON.parse(fs.readFileSync(scriptPath, "utf8"));
   const themeId = resolveTheme(script.meta && script.meta.mood);
+  const workTitle = (script.meta && script.meta.title) || "未命名作品";
+  const htmlName = titleToFilename(workTitle);
   const themeCss = fs.readFileSync(
     path.join(skillRoot, "templates", "themes", themeId + ".css"),
     "utf8",
@@ -93,8 +106,12 @@ function bake(scriptPath, assetsDir, outDir) {
   }
 
   fs.mkdirSync(outDir, { recursive: true });
-  fs.writeFileSync(path.join(outDir, "index.html"), html, "utf8");
-  console.log(`baked ${path.join(outDir, "index.html")} theme=${themeId}`);
+  // 清理旧版 index.html，避免和作品名文件并存混淆
+  const legacy = path.join(outDir, "index.html");
+  if (fs.existsSync(legacy)) fs.unlinkSync(legacy);
+  const outFile = path.join(outDir, htmlName);
+  fs.writeFileSync(outFile, html, "utf8");
+  console.log(`baked ${outFile} theme=${themeId} title=${workTitle}`);
 }
 
 const [scriptPath, assetsDir, outDir] = process.argv.slice(2);

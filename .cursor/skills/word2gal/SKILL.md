@@ -134,7 +134,8 @@ node .cursor/skills/word2gal/scripts/cut-sprite.mjs --mode green --dir <assetsDi
 node .cursor/skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
 ```
 
-输出到用户指定路径，或 `output/<title>/index.html`（近全屏游玩区）。
+输出到用户指定路径，或 `output/<短目录>/《作品名》.html`（近全屏游玩区）。  
+**HTML 文件名必须用作品名**（来自 `meta.title`，非法文件名字符剔除），禁止一律叫 `index.html`。
 
 ### 7. 交付前自检（对照验收标准）
 

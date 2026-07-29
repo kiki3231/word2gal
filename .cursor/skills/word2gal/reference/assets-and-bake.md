@@ -27,7 +27,7 @@
 2. 复制 `templates/player-basic.html`（或 advanced）——模板已含实心立绘层与 Noto Sans SC 抗锯齿正文  
 3. **仅**替换 `__SCRIPT_JSON__`、`__ASSETS_JSON__`（立绘路径指向 `*_cut.png`）  
 4. 禁止改播放器逻辑；禁止给 `#sprite` 加会叠底的 blend/透明度  
-5. 输出 `output/<title>/index.html` + 可选 `assets/`  
+5. 输出 `output/<短目录>/<作品名>.html` + `assets/`（作品名 = `meta.title`，勿用 `index.html`）  
 
 ## 自检清单
 

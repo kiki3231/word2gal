@@ -310,6 +310,7 @@
     var textEl = document.getElementById("text");
     var choicesEl = document.getElementById("choices");
     var endingEl = document.getElementById("ending-banner");
+    var endingTextEl = document.getElementById("ending-text");
     var textbox = document.getElementById("textbox");
     var hintEl = document.getElementById("hint");
 
@@ -482,11 +483,24 @@
       if (node.type === "ending") {
         setSprite(null);
         typewrite(node.text || "（终）", function () {
-          endingEl.textContent = "— 结局 —\n" + (node.text || "");
+          endingTextEl.textContent = "— 结局 —\n" + (node.text || "");
           endingEl.classList.add("show");
         });
       }
     }
+
+    function restartFromStart() {
+      clearType();
+      lastSfxNode = null;
+      endingEl.classList.remove("show");
+      endingTextEl.textContent = "";
+      if (order[0]) gotoNode(order[0]);
+    }
+
+    document.getElementById("btn-restart").addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      restartFromStart();
+    });
 
     textbox.addEventListener("click", function (ev) {
       if (ev.target.closest("#choices")) return;

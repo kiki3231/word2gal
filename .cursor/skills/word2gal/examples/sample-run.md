@@ -13,7 +13,8 @@
 
 ## 现有可玩样例
 
-`output/playable/index.html` 为已 bake 的测试案例（验证播放器）。  
+`output/playable/` 与 `output/hailin-taki/<作品名>.html` 为已 bake 的测试案例。  
+HTML **以作品名命名**（如 `熊猫与初夏的风.html`），不要用 `index.html`。  
 **正式跑 Skill 时**须走完整：抽取 → 成色 → 网查 → 生成 → bake，不能只复制旧 assets 假装完成验收。
 
 ## 验收口述模板（交付用户时）
