@@ -6,13 +6,13 @@
 
 ```
 anime style, visual novel character portrait, bust shot half body,
-clean lineart, soft lighting, transparent or plain light background,
+clean lineart, soft lighting, solid light gray background (#d8d8d8),
 looking at viewer, consistent character design,
 matching reference appearance closely,
 {hair}, {eyes} eyes, wearing {outfit}, {vibe}, expression: {emotion_phrase}
 ```
 
-若有参考图：优先 img2img / reference 约束，再叠加短参数。
+说明：使用**实心浅灰底**便于 `scripts/cut-sprite.mjs` 做边缘洪水抠图；不要生成半透明人物或噪点底。若有参考图：优先 reference 约束，再叠加短参数。
 
 ## 负提示
 

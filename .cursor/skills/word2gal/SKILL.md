@@ -108,8 +108,12 @@ node .cursor/skills/word2gal/scripts/validate-script.mjs <script.json>
 ### 5. 生成立绘差分 / 背景 / 拟声
 
 - 立绘：风格包 prompt + **参考形象约束** + 本篇 expressions；同一角色保持一致  
+- **抠图（强制）**：对带浅灰底的立绘运行  
+  `node .cursor/skills/word2gal/scripts/cut-sprite.mjs --dir <立绘目录>`  
+  必须使用**边缘洪水填充**抠底；**禁止**对整图做「凡是浅灰就透明」的全局色键（会导致脸/衣服穿模）。  
 - 背景：按抽取的场景生成或选用，贴合文章氛围  
 - 拟声：只为清单内标签生成/选用短音  
+- 播放器字体：使用模板内 Noto Sans SC + antialiased，勿改回不覆盖中文的西文字体  
 
 失败重试 ≤2 → `style-packs/.../defaults/` 或静音。
 
