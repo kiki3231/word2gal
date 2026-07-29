@@ -1,5 +1,10 @@
 ### Word2Gal：同人网页视觉小说生成 Skill
 
+> **落地位置：** Cursor Skill 目录 [`.cursor/skills/word2gal/`](.cursor/skills/word2gal/)（入口 `SKILL.md`）  
+> **设计说明：** [docs/plans/2026-07-30-word2gal-design.md](docs/plans/2026-07-30-word2gal-design.md)  
+> **实施计划：** [docs/plans/2026-07-30-word2gal.md](docs/plans/2026-07-30-word2gal.md)  
+> **可玩演示：** [output/demo-music-room.html](output/demo-music-room.html)（浏览器直接打开）
+
 #### 1. 核心定位
 
 面向同人创作者的零门槛交互剧情生产 Skill，复刻「内容结构化 + 模板重构输出可运行文件」的范式。输入同人剧情文本，自动生成浏览器可直接运行的 HTML 网页视觉小说，无需学习专业引擎，纯文案创作者即可产出可交互剧情作品。
