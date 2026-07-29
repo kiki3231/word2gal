@@ -22,12 +22,12 @@
 ### 成品
 
 - 模板：`templates/player-basic.html`  
-- 演示打包：仓库根目录 `output/demo-music-room.html`（默认 SVG 立绘/背景；短音为空则静音）  
+- **可看版演示：** `output/playable/index.html`（立绘抠图 + 音乐室背景 + 短反应音；相对路径资源）  
+- 重新打包：`node .cursor/skills/word2gal/scripts/bake-demo.mjs`  
 
 ## 验收步骤
 
-1. 双击或用浏览器打开 `output/demo-music-room.html`  
-2. 点击/空格推进对白，看到立绘与对话框  
-3. 在选项处分别走「当场拆开」「带回家晚上再拆」  
-4. 试存档/读档  
-5. 缺专用立绘时仍显示 default，不白屏  
+1. 用浏览器打开 `output/playable/index.html`（不要只拷走 html 而丢掉 `assets/`）  
+2. 点击/空格推进：应看到真实立绘、场景背景、对话框样式  
+3. 小悠惊讶句可听到短反应音（需先点击一次解锁音频）  
+4. 走完两个分支结局；试存读档 

@@ -3,7 +3,8 @@
 > **落地位置：** Cursor Skill 目录 [`.cursor/skills/word2gal/`](.cursor/skills/word2gal/)（入口 `SKILL.md`）  
 > **设计说明：** [docs/plans/2026-07-30-word2gal-design.md](docs/plans/2026-07-30-word2gal-design.md)  
 > **实施计划：** [docs/plans/2026-07-30-word2gal.md](docs/plans/2026-07-30-word2gal.md)  
-> **可玩演示：** [output/demo-music-room.html](output/demo-music-room.html)（浏览器直接打开）
+> **可玩演示（可看版）：** [output/playable/index.html](output/playable/index.html)（用浏览器打开；需同目录 `assets/`）  
+> **旧单文件雏形：** [output/demo-music-room.html](output/demo-music-room.html)
 
 #### 1. 核心定位
 
