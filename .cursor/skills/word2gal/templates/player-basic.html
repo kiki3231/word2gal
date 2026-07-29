@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Word2Gal</title>
+  <style>
+    :root {
+      --ink: #2a2420;
+      --panel: rgba(255, 248, 240, 0.92);
+      --accent: #c4785a;
+      --choice: #fff8f0;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; height: 100%;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #1a1512; color: var(--ink);
+      user-select: none;
+    }
+    #stage {
+      position: relative; width: 100%; height: 100%;
+      max-width: 1280px; margin: 0 auto; overflow: hidden;
+      background: #000 center/cover no-repeat;
+    }
+    #sprite {
+      position: absolute; bottom: 18%; left: 50%;
+      transform: translateX(-50%);
+      height: 70%; max-width: 45%; object-fit: contain;
+      pointer-events: none;
+    }
+    #sprite.hidden { display: none; }
+    #ui {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      padding: 1rem 1.25rem 1.25rem;
+    }
+    #textbox {
+      background: var(--panel); border-radius: 16px;
+      padding: 1rem 1.25rem 1.5rem; min-height: 7.5rem;
+      box-shadow: 0 8px 28px rgba(0,0,0,.25);
+      cursor: pointer;
+    }
+    #name {
+      display: inline-block; font-weight: 700; color: var(--accent);
+      margin-bottom: .35rem; min-height: 1.2em;
+    }
+    #text { font-size: 1.1rem; line-height: 1.65; white-space: pre-wrap; }
+    #choices {
+      display: none; flex-direction: column; gap: .6rem;
+      margin-top: .75rem;
+    }
+    #choices.show { display: flex; }
+    #choices button {
+      border: 1px solid rgba(42,36,32,.15); background: var(--choice);
+      border-radius: 12px; padding: .75rem 1rem; font-size: 1rem;
+      text-align: left; cursor: pointer; color: var(--ink);
+    }
+    #choices button:hover { border-color: var(--accent); }
+    #toolbar {
+      position: absolute; top: .75rem; right: .75rem;
+      display: flex; gap: .4rem; z-index: 5;
+    }
+    #toolbar button {
+      border: 0; border-radius: 999px; padding: .4rem .8rem;
+      background: rgba(255,248,240,.85); color: var(--ink);
+      font-size: .85rem; cursor: pointer;
+    }
+    #ending-banner {
+      display: none; position: absolute; inset: 0;
+      background: rgba(20,16,14,.55); align-items: center; justify-content: center;
+      color: #fff8f0; font-size: 1.4rem; text-align: center; padding: 2rem;
+    }
+    #ending-banner.show { display: flex; }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <div id="toolbar">
+      <button type="button" id="btn-save" title="存档">存档</button>
+      <button type="button" id="btn-load" title="读档">读档</button>
+      <button type="button" id="btn-mute" title="音量">音效开</button>
+    </div>
+    <img id="sprite" class="hidden" alt="" />
+    <div id="ui">
+      <div id="textbox">
+        <div id="name"></div>
+        <div id="text"></div>
+        <div id="choices"></div>
+      </div>
+    </div>
+    <div id="ending-banner"></div>
+  </div>
+
+  <!-- AGENT: replace only the JSON text content of these two tags. Do not edit player logic below. -->
+  <script id="w2g-script" type="application/json">__SCRIPT_JSON__</script>
+  <script id="w2g-assets" type="application/json">__ASSETS_JSON__</script>
+
+  <script>
+  (function () {
+    "use strict";
+
+    function parseJsonTag(id) {
+      var el = document.getElementById(id);
+      var raw = (el && el.textContent || "").trim();
+      if (!raw || raw.indexOf("__") === 0) {
+        throw new Error("Missing baked data in #" + id);
+      }
+      return JSON.parse(raw);
+    }
+
+    var script, assets;
+    try {
+      script = parseJsonTag("w2g-script");
+      assets = parseJsonTag("w2g-assets");
+    } catch (e) {
+      document.body.innerHTML = "<pre style='color:#fff;padding:2rem'>Word2Gal: 模板尚未填入剧本/资源。请用 Skill 打包后再打开。\n" + e.message + "</pre>";
+      return;
+    }
+
+    var nodes = script.nodes || [];
+    var byId = {};
+    nodes.forEach(function (n) { byId[n.id] = n; });
+    var order = nodes.map(function (n) { return n.id; });
+    var idx = 0;
+    var currentId = order[0];
+    var typing = false;
+    var typeTimer = null;
+    var fullText = "";
+    var muted = false;
+    var audioUnlocked = false;
+    var saveKey = "w2g:" + ((script.meta && script.meta.title) || "story");
+
+    var stage = document.getElementById("stage");
+    var sprite = document.getElementById("sprite");
+    var nameEl = document.getElementById("name");
+    var textEl = document.getElementById("text");
+    var choicesEl = document.getElementById("choices");
+    var endingEl = document.getElementById("ending-banner");
+    var textbox = document.getElementById("textbox");
+
+    function assetUrl(group, key) {
+      var bag = assets[group] || {};
+      if (key && bag[key]) return bag[key];
+      if (bag.default) return bag.default;
+      if (group === "chars" && bag.default_neutral) return bag.default_neutral;
+      return "";
+    }
+
+    function speakerId(displayName) {
+      var map = assets.speakerToId || {};
+      return map[displayName] || displayName;
+    }
+
+    function setBackground(bgKey) {
+      var url = assetUrl("bgs", bgKey || "default");
+      stage.style.backgroundImage = url ? 'url("' + url + '")' : "none";
+    }
+
+    function setSprite(speaker, emotion) {
+      if (!speaker) {
+        sprite.classList.add("hidden");
+        sprite.removeAttribute("src");
+        return;
+      }
+      var id = speakerId(speaker);
+      var key = id + "_" + (emotion || "neutral");
+      var url = assetUrl("chars", key) || assetUrl("chars", id + "_neutral") || assetUrl("chars", "default");
+      if (!url) {
+        sprite.classList.add("hidden");
+        return;
+      }
+      sprite.src = url;
+      sprite.classList.remove("hidden");
+    }
+
+    function playSfx(tag) {
+      if (muted || !tag || !audioUnlocked) return;
+      var url = assetUrl("sfx", tag);
+      if (!url) return;
+      try {
+        var a = new Audio(url);
+        a.volume = 0.7;
+        a.play().catch(function () {});
+      } catch (e) {}
+    }
+
+    function clearType() {
+      if (typeTimer) {
+        clearInterval(typeTimer);
+        typeTimer = null;
+      }
+      typing = false;
+    }
+
+    function typewrite(text, done) {
+      clearType();
+      fullText = text || "";
+      textEl.textContent = "";
+      if (!fullText) {
+        if (done) done();
+        return;
+      }
+      typing = true;
+      var i = 0;
+      typeTimer = setInterval(function () {
+        i += 1;
+        textEl.textContent = fullText.slice(0, i);
+        if (i >= fullText.length) {
+          clearType();
+          if (done) done();
+        }
+      }, 28);
+    }
+
+    function revealText() {
+      if (!typing) return false;
+      clearType();
+      textEl.textContent = fullText;
+      return true;
+    }
+
+    function showChoices(options) {
+      choicesEl.innerHTML = "";
+      options.forEach(function (opt) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = opt.label;
+        btn.addEventListener("click", function (ev) {
+          ev.stopPropagation();
+          gotoNode(opt.goto);
+        });
+        choicesEl.appendChild(btn);
+      });
+      choicesEl.classList.add("show");
+    }
+
+    function hideChoices() {
+      choicesEl.classList.remove("show");
+      choicesEl.innerHTML = "";
+    }
+
+    function gotoNode(id) {
+      if (!byId[id]) return;
+      currentId = id;
+      idx = order.indexOf(id);
+      render();
+    }
+
+    function advance() {
+      audioUnlocked = true;
+      if (revealText()) return;
+      if (choicesEl.classList.contains("show")) return;
+      var node = byId[currentId];
+      if (!node) return;
+      if (node.type === "ending") return;
+      if (node.type === "choice") return;
+      var next = order[idx + 1];
+      if (next) gotoNode(next);
+    }
+
+    function render() {
+      var node = byId[currentId];
+      if (!node) return;
+      hideChoices();
+      endingEl.classList.remove("show");
+      nameEl.textContent = "";
+
+      if (node.type === "scene") {
+        setBackground(node.background);
+        setSprite(null);
+        typewrite(node.text || "……", null);
+        return;
+      }
+      if (node.type === "narration") {
+        setSprite(null);
+        typewrite(node.text, null);
+        return;
+      }
+      if (node.type === "dialogue") {
+        nameEl.textContent = node.speaker || "";
+        setSprite(node.speaker, node.emotion);
+        playSfx(node.voiceTag);
+        typewrite(node.text, null);
+        return;
+      }
+      if (node.type === "choice") {
+        setSprite(null);
+        textEl.textContent = "请选择：";
+        showChoices(node.options || []);
+        return;
+      }
+      if (node.type === "ending") {
+        setSprite(null);
+        typewrite(node.text || "（终）", function () {
+          endingEl.textContent = "— 结局 —\n" + (node.text || "");
+          endingEl.classList.add("show");
+        });
+      }
+    }
+
+    textbox.addEventListener("click", function (ev) {
+      if (ev.target.closest("#choices")) return;
+      advance();
+    });
+    document.addEventListener("keydown", function (ev) {
+      if (ev.code === "Space" || ev.code === "Enter") {
+        ev.preventDefault();
+        advance();
+      }
+    });
+
+    document.getElementById("btn-save").addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      try {
+        localStorage.setItem(saveKey, JSON.stringify({ nodeId: currentId }));
+        alert("已存档");
+      } catch (e) {
+        alert("存档失败");
+      }
+    });
+    document.getElementById("btn-load").addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      try {
+        var raw = localStorage.getItem(saveKey);
+        if (!raw) { alert("没有存档"); return; }
+        var data = JSON.parse(raw);
+        if (data.nodeId && byId[data.nodeId]) gotoNode(data.nodeId);
+        else alert("存档无效");
+      } catch (e) {
+        alert("读档失败");
+      }
+    });
+    document.getElementById("btn-mute").addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      muted = !muted;
+      ev.currentTarget.textContent = muted ? "音效关" : "音效开";
+    });
+
+    if (script.meta && script.meta.title) document.title = script.meta.title;
+    setBackground("default");
+    render();
+  })();
+  </script>
+</body>
+</html>
