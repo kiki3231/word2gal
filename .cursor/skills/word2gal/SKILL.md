@@ -109,12 +109,14 @@ node .cursor/skills/word2gal/scripts/validate-script.mjs <script.json>
 ### 5. 生成立绘差分 / 背景 / 拟声
 
 - 立绘：风格包 prompt + **参考形象约束** + 本篇 expressions；同一角色保持一致  
-- **抠图（强制）**：对带浅灰底的立绘运行  
-  `node .cursor/skills/word2gal/scripts/cut-sprite.mjs --dir <立绘目录>`  
-  必须使用**边缘洪水填充**抠底；**禁止**对整图做「凡是浅灰就透明」的全局色键（会导致脸/衣服穿模）。  
+- **生图必须带纯绿幕 `#00FF00`**（见 `style-packs/.../prompt.md`）。当前工具常无法输出真透明 PNG，**不要指望 transparent 背景**。  
+- **抠图（绿幕色度，默认）**：  
+  `node .cursor/skills/word2gal/scripts/cut-sprite.mjs --mode green --dir <立绘目录>`  
+  只去掉绿色像素，**禁止**激进浅灰洪水抠图（会把人抠穿）。  
+- `--mode flood` 仅作旧灰底板的保守兜底，默认不要用。  
 - 背景：按抽取的场景生成或选用，贴合文章氛围  
 - 拟声：只为清单内标签生成/选用短音  
-- 播放器字体：使用模板内 Noto Sans SC + antialiased，勿改回不覆盖中文的西文字体  
+- 播放器字体：使用模板内 Noto Sans SC + antialiased  
 
 失败重试 ≤2 → `style-packs/.../defaults/` 或静音。
 
@@ -128,7 +130,7 @@ node .cursor/skills/word2gal/scripts/validate-script.mjs <script.json>
 推荐命令：
 
 ```bash
-node .cursor/skills/word2gal/scripts/cut-sprite.mjs --dir <assetsDir>
+node .cursor/skills/word2gal/scripts/cut-sprite.mjs --mode green --dir <assetsDir>
 node .cursor/skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
 ```
 
