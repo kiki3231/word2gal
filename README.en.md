@@ -50,7 +50,8 @@ Open the generated HTML and you’ll see something like:
 
 <img src="media/demo/demo-history.png" alt="History backlog panel" width="720" />
 
-<sub>Demo story *Morning Star*: stage sprites · speaker nameplate · history backlog</sub>
+<sub>Demo story *Morning Star*: stage sprites · speaker nameplate · history backlog<br />
+Story source: [Bilibili opus](https://www.bilibili.com/opus/1100588492074778661)</sub>
 
 </div>
 

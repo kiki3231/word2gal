@@ -50,7 +50,8 @@
 
 <img src="media/demo/demo-history.png" alt="历史记录面板" width="720" />
 
-<sub>演示作《启明星》：场景立绘 · 说话人名牌 · 历史回溯</sub>
+<sub>演示作《启明星》：场景立绘 · 说话人名牌 · 历史回溯<br />
+文章来源：[Bilibili 动态 / 专栏 opus](https://www.bilibili.com/opus/1100588492074778661)</sub>
 
 </div>
 
