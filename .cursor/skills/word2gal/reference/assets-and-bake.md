@@ -9,9 +9,9 @@
 | 立绘 | `chars.{id}_{emotion}` | `you_surprise` |
 | 背景 | `bgs.{sceneKey}` | `music_room` |
 | 拟声 | `sfx.{voiceTag}` | `soft_laugh` |
-| BGM | `bgm.{key}` | `love`（见 `bgm.md`） |
+| BGM | `bgm.{key}` | `sad` / `love`（见 `bgm.md`） |
 
-另需：`speakerToId`、`chars.default`、`bgs.default`。恋爱向另需 `meta.bgm` + `bgm.love`。
+另需：`speakerToId`、`chars.default`、`bgs.default`。有 BGM 时另需 `meta.bgm` + 对应 `bgm.sad` 或 `bgm.love`。
 
 ## 生成顺序（对照验收标准）
 
@@ -22,7 +22,7 @@
 5. **目视 QA**：绿/灰 fringe、画进人物的棋盘格仍须 Agent 看图；残底不上架  
 6. 仅为**本篇拟声清单**生成/选用短音（vocal 口技 + 有据 foley，见 `emotion-and-sfx.md`）  
 7. 场景背景按文章场景与成色生成（场景图可有完整画面；同样自动确认）  
-8. 若恋爱向：`meta.bgm = "love"`，Bake 时从 `music/love.mp3` 复制到 `assets/bgm/`  
+8. 按 `bgm.md` 设 `meta.bgm`（`sad` / `love`）；Bake 时从 `music/<key>.mp3` 复制到 `assets/bgm/`  
 9. 失败 ≤2 次 → defaults / 静音  
 
 推荐命令：
@@ -38,7 +38,7 @@ node .cursor/skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <o
 1. `validate-script.mjs` 通过  
 2. 复制 `templates/player-basic.html`（或 advanced）——模板已含实心立绘层与 Noto Sans SC 抗锯齿正文  
 3. **仅**替换 `__SCRIPT_JSON__`、`__ASSETS_JSON__`、`__THEME_ID__` / `__THEME_CSS__`（立绘路径指向真透明或抠净后的 `*_cut.png`）  
-4. 若 `meta.bgm === "love"`：复制 `music/love.mp3` → `assets/bgm/love.mp3` 并写入 `assets.bgm`  
+4. 若 `meta.bgm` 为 `sad` / `love`：复制 `music/<key>.mp3` → `assets/bgm/<key>.mp3` 并写入 `assets.bgm`  
 5. 禁止给 `#sprite` 加会叠底的 blend/透明度  
 6. 输出 `output/<短目录>/<作品名>.html` + `assets/`（作品名 = `meta.title`，勿用 `index.html`）  
 
@@ -53,5 +53,5 @@ node .cursor/skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <o
 - [ ] 原文覆盖自检通过（见 `extraction.md`）  
 - [ ] 对白字体清晰；游玩区近全屏  
 - [ ] 界面主题与文章 mood 一致（摘要中说明）  
-- [ ] 恋爱向作品有 BGM（首次点击后循环）  
+- [ ] 伤感/恋爱向作品有对应 BGM（`sad` / `love`，首次点击后循环）  
 - [ ] 校验通过；可玩；摘要已用自然语言说明回退项  

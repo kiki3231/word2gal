@@ -56,7 +56,7 @@ description: >-
 - 抽取：`reference/extraction.md`
 - 网查与人物深度分析：`reference/character-lookup.md`（多图对照、年龄锁、神态）
 - 情绪成色与拟声：`reference/emotion-and-sfx.md`
-- 背景音乐：`reference/bgm.md`（恋爱向用 `music/love.mp3`）
+- 背景音乐：`reference/bgm.md`（伤感冷基调用 `music/sad.mp3`；恋爱向用 `music/love.mp3`）
 - 界面主题：`reference/ui-themes.md`（按 mood 自动选）
 - 角色卡：`reference/character-card.md`
 - 剧本结构：`reference/script-schema.md`
@@ -89,8 +89,9 @@ description: >-
 
 按 `reference/bgm.md`：
 
-- 若文章含爱情/恋爱/暗恋/告白/心动等恋爱向语义 → `meta.bgm = "love"`（使用 `music/love.mp3`）
-- 否则可不设 BGM
+- 若文章呈伤感/伤心/悲伤等冷基调（或 mood=`bittersweet`）→ `meta.bgm = "sad"`（使用 `music/sad.mp3`）  
+- 否则若含爱情/恋爱/暗恋/告白/心动等恋爱向语义 → `meta.bgm = "love"`（使用 `music/love.mp3`）  
+- 伤感优先于恋爱；否则可不设 BGM
 
 ### 3. 深度分析人物 → 网查多图对照 → 角色卡
 

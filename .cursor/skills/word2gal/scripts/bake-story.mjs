@@ -67,29 +67,51 @@ function bake(scriptPath, assetsDir, outDir) {
     }
   }
   if (!chars.default) {
-    const first = Object.keys(chars)[0];
-    if (first) chars.default = chars[first];
+    const prefer =
+      Object.keys(chars).find((k) => k.endsWith("_neutral")) ||
+      Object.keys(chars)[0];
+    if (prefer) chars.default = chars[prefer];
   }
 
-  // speaker map heuristic from script
+  // speaker map: assets/speaker-map.json 优先，否则启发式
   const speakerToId = {};
+  const mapPath = path.join(assetsDir, "speaker-map.json");
+  if (fs.existsSync(mapPath)) {
+    Object.assign(speakerToId, JSON.parse(fs.readFileSync(mapPath, "utf8")));
+  }
   for (const n of script.nodes || []) {
     if (n.type === "dialogue" && n.speaker) {
       const sp = n.speaker;
-      if (!speakerToId[sp]) {
-        // match char keys prefix
-        const hit = Object.keys(chars).find((k) => k.startsWith("umiri") && sp.includes("海"))
-          || Object.keys(chars).find((k) => k.startsWith("taki") && sp.includes("立"));
-        // fallback: leave for caller; common CN names
-        if (sp === "海铃") speakerToId[sp] = "umiri";
-        else if (sp === "立希") speakerToId[sp] = "taki";
-      }
+      if (speakerToId[sp]) continue;
+      const hit = Object.keys(chars).find((k) => k.startsWith("umiri") && sp.includes("海"))
+        || Object.keys(chars).find((k) => k.startsWith("taki") && sp.includes("立"));
+      if (sp === "海铃") speakerToId[sp] = "umiri";
+      else if (sp === "立希") speakerToId[sp] = "taki";
+      else if (hit) {/* keep legacy */}
     }
   }
   if (!speakerToId["海铃"] && chars.umiri_neutral) speakerToId["海铃"] = "umiri";
   if (!speakerToId["立希"] && chars.taki_neutral) speakerToId["立希"] = "taki";
 
-  const assets = { speakerToId, chars, bgs, sfx };
+  const bgm = {};
+  const bgmKey = (script.meta && script.meta.bgm) || "";
+  const bgmFiles = { love: "love.mp3", sad: "sad.mp3" };
+  const bgmFile = bgmFiles[bgmKey];
+  if (bgmFile) {
+    const musicSrc = path.join(skillRoot, "music", bgmFile);
+    const bgmDir = path.join(assetsDir, "bgm");
+    fs.mkdirSync(bgmDir, { recursive: true });
+    const dest = path.join(bgmDir, bgmFile);
+    if (fs.existsSync(musicSrc)) {
+      fs.copyFileSync(musicSrc, dest);
+      bgm[bgmKey] = "assets/bgm/" + bgmFile;
+      bgm.default = bgm[bgmKey];
+    } else {
+      console.warn("warn: music/" + bgmFile + " missing, skip BGM");
+    }
+  }
+
+  const assets = { speakerToId, chars, bgs, sfx, bgm };
 
   let html = fs.readFileSync(path.join(skillRoot, "templates", "player-basic.html"), "utf8");
   if (html.includes("__THEME_ID__")) {
