@@ -1,3 +1,5 @@
-.superpowers/
-.cursor/skills/word2gal/scripts/node_modules/
+﻿.superpowers/
+.cursor/
+skills/word2gal/scripts/node_modules/
 output/
+docs/

@@ -91,7 +91,7 @@ Agent 在 Skill 工作流中生成的剧本结构；**用户不手写此 JSON**�
 ## 校验命令
 
 ```bash
-node .cursor/skills/word2gal/scripts/validate-script.mjs path/to/script.json
+node skills/word2gal/scripts/validate-script.mjs path/to/script.json
 ```
 
 成功时打印 `OK`，退出码 `0`；失败时打印错误列表（每行一条），退出码 `1`。

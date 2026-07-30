@@ -28,9 +28,9 @@
 推荐命令：
 
 ```bash
-node .cursor/skills/word2gal/scripts/cut-sprite.mjs --mode green --dir <assetsDir>   # 仅回退需要时
-node .cursor/skills/word2gal/scripts/check-sprite-alpha.mjs <assetsDir>
-node .cursor/skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
+node skills/word2gal/scripts/cut-sprite.mjs --mode green --dir <assetsDir>   # 仅回退需要时
+node skills/word2gal/scripts/check-sprite-alpha.mjs <assetsDir>
+node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
 ```
 
 ## Bake

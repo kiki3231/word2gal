@@ -2,15 +2,17 @@
 
 English | [简体中文](./README.md)
 
-> A natural-language-driven visual novel Skill — turn a fanfic / story draft into a playable HTML galgame in the browser.
+> A natural-language-driven visual novel **Agent Skill** — turn a fanfic / story draft into a playable HTML galgame.
 
 Repo: [github.com/kiki3231/word2gal](https://github.com/kiki3231/word2gal)
+
+Works with **any tool that supports Agent Skills** (Cursor, Claude Code, Trae, Codex, Kimi Code, …): install this repo’s `skills/word2gal/` into that tool’s skills directory.
 
 ---
 
 ## What it is
 
-**Word2Gal** is a Cursor [Agent Skill](https://cursor.com). You provide one natural-language story (characters, scenes, dialogue), and the agent will:
+**Word2Gal** is a standard Agent Skill (`SKILL.md` + scripts + references). You provide one natural-language story (characters, scenes, dialogue), and the agent will:
 
 1. Extract characters / scenes / dialogue & narration (**keep source wording**; no silent summarization)
 2. Look up common character appearances online, then generate sprites and emotion variants
@@ -42,41 +44,34 @@ If assets fail, defaults / silence are used, but the HTML must still be **playab
 
 ### 1. Requirements
 
-- [Cursor](https://cursor.com) with Agent Skills
+- Any Agent / IDE that supports **Agent Skills** (`SKILL.md`)
 - Local Node.js (bake / cut / validate scripts)
-- Network recommended (multi-image character lookup)
+- Network recommended (character lookup); image generation depends on your Agent
 
 ### 2. Install the Skill
 
-**Option A — use this repo**
-
 ```bash
 git clone https://github.com/kiki3231/word2gal.git
-cd word2gal
 ```
 
-Open the folder as a Cursor workspace. The Skill lives at:
+Copy (or symlink) **`skills/word2gal/`** into your tool’s skills directory; keep the folder name `word2gal`:
 
-```text
-.cursor/skills/word2gal/
-```
-
-**Option B — copy into an existing project**
-
-Copy the whole `.cursor/skills/word2gal/` directory into your project's `.cursor/skills/`, then open that project in Cursor.
+| Tool | Typical project path |
+|------|----------------------|
+| Cursor | `<project>/.cursor/skills/word2gal/` |
+| Claude Code | `<project>/.claude/skills/word2gal/` or `~/.claude/skills/word2gal/` |
+| Trae / Codex / Kimi Code / others | Follow that product’s Agent Skills docs; place the same `word2gal/` folder |
 
 ### 3. Install script dependencies (recommended)
 
-Sprite cut / alpha check need `pngjs`:
-
 ```bash
-cd .cursor/skills/word2gal/scripts
+cd skills/word2gal/scripts
 npm install
 ```
 
 ### 4. Generate
 
-In a Cursor Agent chat, ask in natural language and paste your story, e.g.:
+In your Agent chat:
 
 ```text
 Use Word2Gal to turn the following into a playable visual-novel HTML:
@@ -92,7 +87,7 @@ Phrases like “make a galgame / fanfic web VN” also trigger the Skill.
 
 ### Input tips
 
-- **Sweet spot**: ~800–2500 characters (CJK) / words of story length; soft cap ~5000 per run
+- **Sweet spot**: ~800–2500 characters of story length; soft cap ~5000 per run
 - **Leads**: 2–3 characters is best; ≤4 sprite leads per run
 - **Scenes**: 1–3; ≤5 per run
 - Make speakers, places, mood, and actions (laugh, sigh, knock, …) clear
@@ -107,27 +102,22 @@ Phrases like “make a galgame / fanfic web VN” also trigger the Skill.
 5. **Generate assets** — sprites (true alpha first, greenscreen cut as fallback), backgrounds, short SFX
 6. **Bake** into the player template → playable HTML
 
-### Useful commands
+### Useful commands (from repo root)
 
 ```bash
-# Validate script
-node .cursor/skills/word2gal/scripts/validate-script.mjs <script.json>
-
-# Greenscreen cut (sprite fallback only)
-node .cursor/skills/word2gal/scripts/cut-sprite.mjs --mode green --dir <assetsDir>
-
-# Alpha check (flags fully opaque plates; not a fringe-free proof)
-node .cursor/skills/word2gal/scripts/check-sprite-alpha.mjs <assetsDir>
-
-# Bake
-node .cursor/skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
+node skills/word2gal/scripts/validate-script.mjs <script.json>
+node skills/word2gal/scripts/cut-sprite.mjs --mode green --dir <assetsDir>
+node skills/word2gal/scripts/check-sprite-alpha.mjs <assetsDir>
+node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
 ```
+
+If the Skill is installed elsewhere, point at that install’s `scripts/` folder instead.
 
 ### Output layout
 
 ```text
 output/<slug>/<Title>.html
-output/<slug>/assets/   # sprites, backgrounds, sfx, bgm
+output/<slug>/assets/
 ```
 
 `output/` is gitignored by default.
@@ -141,7 +131,7 @@ output/<slug>/assets/   # sprites, backgrounds, sfx, bgm
 | `sad` | `music/sad.mp3` | Melancholy / sad / heartbroken / bittersweet parting, or `mood=bittersweet` |
 | `love` | `music/love.mp3` | Romance / crush / confession / heartbeat — and not mainly melancholy |
 
-**Priority: `sad` > `love`.** Details: [`.cursor/skills/word2gal/reference/bgm.md`](.cursor/skills/word2gal/reference/bgm.md).
+**Priority: `sad` > `love`.** Details: [`skills/word2gal/reference/bgm.md`](skills/word2gal/reference/bgm.md).
 
 > Bundled tracks are demo assets; clear rights before redistributing.
 
@@ -150,7 +140,7 @@ output/<slug>/assets/   # sprites, backgrounds, sfx, bgm
 ## Layout
 
 ```text
-.cursor/skills/word2gal/
+skills/word2gal/
 ├── SKILL.md                 # Skill entry (acceptance + workflow)
 ├── reference/               # Extraction, cast, emotion/SFX, BGM, bake
 ├── scripts/                 # validate / cut-sprite / check-alpha / bake
@@ -169,7 +159,14 @@ output/<slug>/assets/   # sprites, backgrounds, sfx, bgm
 - **SFX follows the text** — vocals must sound human; no impact SFX posing as laughs/sighs
 - **No full-dialogue TTS**
 
-Full rules: [`.cursor/skills/word2gal/SKILL.md`](.cursor/skills/word2gal/SKILL.md).
+Full rules: [`skills/word2gal/SKILL.md`](skills/word2gal/SKILL.md).
+
+---
+
+## Compatibility
+
+- **Needs**: Skill discovery for `SKILL.md`; shell/Node; preferably network + image generation
+- **Not guaranteed**: Agents without Skills support, local scripts, or file tools
 
 ---
 

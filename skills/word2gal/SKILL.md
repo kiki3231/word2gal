@@ -3,12 +3,13 @@ name: word2gal
 description: >-
   将用户自然语言文章（含角色、场景、对话）提取为可玩 HTML 视觉小说：
   多图对照网查角色通行长相与年龄神态后生成立绘与情绪差分，并按文章设定挂拟声短音。
-  在用户提到 Word2Gal、同人网页视觉小说、用文字生成 galgame/视觉小说 HTML 时使用。
+  在用户提到 Word2Gal、同人网页视觉小说、用文字生成 galgame/视觉小说 HTML 时使用
+  （适用于 Cursor / Claude Code / Trae / Codex / Kimi Code 等支持 Agent Skills 的工具）。
 ---
 
 # Word2Gal
 
-面向同人创作者的 Cursor Skill：用户只交**一篇自然语言文章**，你产出可直接游玩的 HTML 视觉小说。
+面向同人创作者的 **Agent Skill**（Cursor / Claude Code / Trae / Codex / Kimi Code 等凡支持 Skills 的工具均可）：用户只交**一篇自然语言文章**，你产出可直接游玩的 HTML 视觉小说。
 
 ## 验收标准（必须全部满足）
 
@@ -112,7 +113,7 @@ description: >-
 `dialogue.emotion` / `voiceTag` **只能**来自第 2 步清单；文中无对应情绪则 `neutral` 或静音。
 
 ```bash
-node .cursor/skills/word2gal/scripts/validate-script.mjs <script.json>
+node skills/word2gal/scripts/validate-script.mjs <script.json>
 ```
 
 不通过则先修好。
@@ -144,9 +145,9 @@ node .cursor/skills/word2gal/scripts/validate-script.mjs <script.json>
 推荐命令：
 
 ```bash
-node .cursor/skills/word2gal/scripts/cut-sprite.mjs --mode green --dir <assetsDir>   # 仅回退需要时
-node .cursor/skills/word2gal/scripts/check-sprite-alpha.mjs <assetsDir>
-node .cursor/skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
+node skills/word2gal/scripts/cut-sprite.mjs --mode green --dir <assetsDir>   # 仅回退需要时
+node skills/word2gal/scripts/check-sprite-alpha.mjs <assetsDir>
+node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
 ```
 输出到用户指定路径，或 `output/<短目录>/《作品名》.html`（近全屏游玩区）。  
 **HTML 文件名必须用作品名**（来自 `meta.title`，非法文件名字符剔除），禁止一律叫 `index.html`。
