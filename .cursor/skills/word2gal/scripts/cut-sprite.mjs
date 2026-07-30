@@ -1,11 +1,13 @@
 /**
- * Sprite background removal.
+ * Sprite background removal (fallback only).
+ * Prefer true-transparent sprite generation first.
+ * Use greenscreen + this script only when the model returned a solid/fake plate.
  *
- * Preferred (precise): green-screen chroma
+ * Green plate leftovers:
  *   node cut-sprite.mjs --mode green <in.png> <out.png>
  *   node cut-sprite.mjs --mode green --dir <folder>
  *
- * Fallback (conservative edge flood — only when image is light-gray plate):
+ * Light plate (conservative edge flood — only when image is light-gray plate):
  *   node cut-sprite.mjs --mode flood <in.png> <out.png>
  *
  * Default mode: green
