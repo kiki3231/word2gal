@@ -1,3 +1,5 @@
+<div align="center">
+
 # Word2Gal
 
 [English](./README.en.md) | 简体中文
@@ -13,6 +15,8 @@
 提供标准 `SKILL.md` + 播放器模板 + Bake 脚本，配合 Cursor、Claude Code、Trae、Codex、Kimi Code 等支持 Agent Skills 的工具使用，自动完成抽取、立绘、拟声与打包。
 
 [快速开始](#快速开始) · [它能做什么](#它能做什么) · [成品效果](#成品效果) · [项目结构](#项目结构)
+
+</div>
 
 ---
 
@@ -196,4 +200,8 @@ word2gal/
 
 ---
 
+<div align="center">
+
 **如果对你有帮助，欢迎 Star ⭐**
+
+</div>

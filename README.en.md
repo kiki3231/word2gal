@@ -1,3 +1,5 @@
+<div align="center">
+
 # Word2Gal
 
 English | [简体中文](./README.md)
@@ -13,6 +15,8 @@ English | [简体中文](./README.md)
 Ships a standard `SKILL.md`, player templates, and bake scripts. Use it with Cursor, Claude Code, Trae, Codex, Kimi Code, or any tool that supports Agent Skills.
 
 [Quick start](#quick-start) · [What it does](#what-it-does) · [What you get](#what-you-get) · [Layout](#layout)
+
+</div>
 
 ---
 
@@ -190,4 +194,8 @@ Full rules: [`skills/word2gal/SKILL.md`](skills/word2gal/SKILL.md).
 
 ---
 
+<div align="center">
+
 **If this helps you, a Star ⭐ is appreciated.**
+
+</div>
