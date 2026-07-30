@@ -165,6 +165,7 @@ node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
 word2gal/
 ├── README.md / README.en.md
 ├── LICENSE
+├── media/demo/                  # README demo screenshots
 └── skills/word2gal/
     ├── SKILL.md
     ├── reference/
@@ -180,9 +181,10 @@ word2gal/
 
 - Natural language only — no forms  
 - Faithful dialogue/narration — split by pacing only  
-- True-alpha sprites first — greenscreen is fallback  
+- Greenscreen sprite cut by default — dirty plates must not ship; OC/NPC match in-story style  
 - Vocals must sound human — no impact SFX as laughs/sighs  
 - No full-dialogue TTS  
+- History backlog with 【speaker】 + body text  
 
 Full rules: [`skills/word2gal/SKILL.md`](skills/word2gal/SKILL.md).
 
