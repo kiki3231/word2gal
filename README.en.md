@@ -14,9 +14,49 @@ English | [简体中文](./README.md)
 
 Ships a standard `SKILL.md`, player templates, and bake scripts. Use it with Cursor, Claude Code, Trae, Codex, Kimi Code, or any tool that supports Agent Skills.
 
-[Quick start](#quick-start) · [What it does](#what-it-does) · [What you get](#what-you-get) · [Layout](#layout)
+[Prerequisites](#prerequisites) · [Recommended models](#recommended-models) · [Quick start](#quick-start) · [What you get](#what-you-get)
 
 </div>
+
+---
+
+## Prerequisites
+
+You only need the following (**no** Docker / Python venv):
+
+| Need | Why |
+|------|-----|
+| An Agent Skills–capable app | Cursor, Claude Code, Trae, Codex, Kimi Code, etc., loading `skills/word2gal/` |
+| **Node.js 18+** (with npm) | Script validate, greenscreen cut, bake |
+| One `npm install` | Installs `pngjs` only (see command below) |
+| Image-generation capable Agent/model | Sprites & backgrounds; without it you get weak placeholders |
+| Network (recommended) | Look up character appearance; offline → text-only fallback |
+| A modern browser | Play the baked HTML |
+
+**Required once:**
+
+```bash
+cd skills/word2gal/scripts
+npm install
+```
+
+This installs [`pngjs`](https://www.npmjs.com/package/pngjs) for `cut-sprite.mjs` / `check-sprite-alpha.mjs`.  
+No other global package managers. The **output HTML has no frontend npm deps** — open it in a browser.
+
+Bundled BGM (`music/sad.mp3` / `love.mp3`) ships with the Skill. If your Agent **cannot** generate short SFX, vocals stay silent; the story remains playable.
+
+---
+
+## Recommended models
+
+Prefer models (or same-vendor stacks) that can **both orchestrate the Skill and generate images**. Sprite quality drives the experience; text-only setups are not recommended as your main choice.
+
+| Tier | Pick from |
+|------|-----------|
+| International | **Gemini** (with Imagen / Nano Banana–class image), **GPT** (with GPT Image), Claude + built-in image tools (e.g. Cursor image gen) |
+| China / CN stacks | **Qwen + Tongyi Wanxiang**, **Doubao / Jimeng (即梦)**, **Zhipu GLM + CogView / Qingying-class image**, **ERNIE + Wenxin Yige**, **Hunyuan** image, **Kolors** (when wired into your Agent) |
+
+**How to choose:** stable chat + clear bust portraits, few face collapses; short SFX is a bonus (bundled BGM still works). Names change often — use whatever image capability your Agent can actually call.
 
 ---
 
@@ -84,12 +124,20 @@ Longer works: **split by chapter**, reuse sprites when possible.
 
 ## Quick start
 
+After [Prerequisites](#prerequisites) and [Recommended models](#recommended-models):
+
 ### Install
 
-1. Download this project  
+1. Clone https://github.com/kiki3231/word2gal  
 2. Copy (or symlink) **`skills/word2gal/`** into your Agent’s skills directory; keep the folder name `word2gal`  
-3. (Recommended) `cd skills/word2gal/scripts && npm install`  
-4. Reload the Agent  
+3. Install script deps (**required** — cut/bake may fail without it):
+
+```bash
+cd skills/word2gal/scripts
+npm install
+```
+
+4. Reload the Agent and pick a model stack with **image generation**  
 
 | Tool | Typical path |
 |------|----------------|
@@ -111,6 +159,8 @@ Output defaults to:
 output/<slug>/<Title>.html
 output/<slug>/assets/
 ```
+
+Open the HTML in a browser (BGM may start after the first click).
 
 ---
 
@@ -201,8 +251,8 @@ Full rules: [`skills/word2gal/SKILL.md`](skills/word2gal/SKILL.md).
 
 ## Compatibility
 
-- **Needs**: Skill loading, shell/Node, preferably network + image gen  
-- **Not guaranteed**: Agents without Skills, local scripts, or file tools  
+- **Needs**: see [Prerequisites](#prerequisites) — especially Node + `npm install` and image generation  
+- **Not guaranteed**: Agents without Skills, local scripts, or any image tools (output will look poor / placeholder-heavy)  
 
 ---
 
