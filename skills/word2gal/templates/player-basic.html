@@ -219,11 +219,78 @@ __THEME_CSS__
       filter: brightness(1.08);
       transform: translateY(-1px);
     }
+    #history-overlay {
+      display: none;
+      position: absolute; inset: 0;
+      z-index: 8;
+      background: rgba(6, 5, 4, 0.55);
+      align-items: stretch;
+      justify-content: flex-end;
+    }
+    #history-overlay.show { display: flex; }
+    #history-panel {
+      width: min(420px, 92vw);
+      height: 100%;
+      background: color-mix(in srgb, var(--panel) 96%, #000);
+      border-left: 1px solid var(--panel-edge);
+      box-shadow: -12px 0 40px rgba(0,0,0,0.45);
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(14px);
+    }
+    #history-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.1rem 0.75rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--panel-edge) 55%, transparent);
+      font-family: "Noto Serif SC", serif;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+    }
+    #history-close {
+      border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+      border-radius: 999px;
+      padding: 0.28rem 0.85rem;
+      background: transparent;
+      color: var(--ink-dim);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+    }
+    #history-close:hover { color: var(--gold); border-color: var(--gold); }
+    #history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.85rem 1.1rem 1.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .history-item { line-height: 1.65; }
+    .history-who {
+      font-size: 0.82rem;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      margin-bottom: 0.2rem;
+    }
+    .history-body {
+      font-size: 0.98rem;
+      color: var(--ink);
+      white-space: pre-wrap;
+      opacity: 0.92;
+    }
+    .history-empty {
+      color: var(--ink-dim);
+      font-size: 0.95rem;
+      padding: 1rem 0;
+    }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @media (max-width: 720px) {
       #sprite { right: 50%; transform: translateX(50%); max-width: 85%; height: 62%; bottom: 20%; }
       #sprite.show { transform: translateX(50%); }
       #ui { padding: 0 0.75rem 0.85rem; }
+      #history-panel { width: 100%; }
     }
   </style>
 </head>
@@ -232,6 +299,7 @@ __THEME_CSS__
     <div id="stage">
       <div id="bg-fx" aria-hidden="true"></div>
       <div id="toolbar">
+        <button type="button" id="btn-history">历史</button>
         <button type="button" id="btn-save">存档</button>
         <button type="button" id="btn-load">读档</button>
         <button type="button" id="btn-mute">音效开</button>
@@ -244,6 +312,15 @@ __THEME_CSS__
           <div id="text"></div>
           <div id="choices"></div>
           <div id="hint">▼</div>
+        </div>
+      </div>
+      <div id="history-overlay" aria-hidden="true">
+        <div id="history-panel" role="dialog" aria-label="历史记录">
+          <div id="history-head">
+            <span>历史</span>
+            <button type="button" id="history-close">关闭</button>
+          </div>
+          <div id="history-list"></div>
         </div>
       </div>
       <div id="ending-banner">
@@ -293,6 +370,8 @@ __THEME_CSS__
     var lastSfxNode = null;
     var bgmStarted = false;
     var saveKey = "w2g:" + ((script.meta && script.meta.title) || "story");
+    var historyLog = [];
+    var historyOpen = false;
 
     var stage = document.getElementById("stage");
     var sprite = document.getElementById("sprite");
@@ -304,12 +383,15 @@ __THEME_CSS__
     var textbox = document.getElementById("textbox");
     var hintEl = document.getElementById("hint");
     var bgmEl = document.getElementById("bgm");
+    var historyOverlay = document.getElementById("history-overlay");
+    var historyList = document.getElementById("history-list");
 
     function assetUrl(group, key) {
       var bag = assets[group] || {};
       if (key && bag[key]) return bag[key];
+      // chars: never fall back to another character via bag.default
+      if (group === "chars") return "";
       if (bag.default) return bag.default;
-      if (group === "chars" && bag.default_neutral) return bag.default_neutral;
       return "";
     }
 
@@ -330,7 +412,8 @@ __THEME_CSS__
 
     function speakerId(displayName) {
       var map = assets.speakerToId || {};
-      return map[displayName] || displayName;
+      if (map[displayName]) return map[displayName];
+      return "";
     }
 
     function setBackground(bgKey) {
@@ -346,10 +429,19 @@ __THEME_CSS__
         return;
       }
       var id = speakerId(speaker);
-      var key = id + "_" + (emotion || "neutral");
-      var url = assetUrl("chars", key) || assetUrl("chars", id + "_neutral") || assetUrl("chars", "default");
-      if (!url) {
+      if (!id) {
+        sprite.classList.remove("show");
         sprite.classList.add("hidden");
+        sprite.removeAttribute("src");
+        return;
+      }
+      var bag = assets.chars || {};
+      var key = id + "_" + (emotion || "neutral");
+      var url = bag[key] || bag[id + "_neutral"] || "";
+      if (!url) {
+        sprite.classList.remove("show");
+        sprite.classList.add("hidden");
+        sprite.removeAttribute("src");
         return;
       }
       sprite.classList.remove("hidden");
@@ -361,6 +453,61 @@ __THEME_CSS__
       } else {
         sprite.classList.add("show");
       }
+    }
+
+    function pushHistory(who, text) {
+      if (!text) return;
+      historyLog.push({ who: who || "旁白", text: text });
+    }
+
+    function rebuildHistoryUpTo(targetId) {
+      historyLog = [];
+      for (var i = 0; i < order.length; i++) {
+        var n = byId[order[i]];
+        if (!n) continue;
+        if (n.type === "narration") pushHistory("旁白", n.text);
+        else if (n.type === "dialogue") pushHistory(n.speaker || "旁白", n.text);
+        else if (n.type === "ending") pushHistory("旁白", n.text || "（终）");
+        if (order[i] === targetId) break;
+      }
+    }
+
+    function renderHistory() {
+      historyList.innerHTML = "";
+      if (!historyLog.length) {
+        var empty = document.createElement("div");
+        empty.className = "history-empty";
+        empty.textContent = "还没有已读内容";
+        historyList.appendChild(empty);
+        return;
+      }
+      for (var i = historyLog.length - 1; i >= 0; i--) {
+        var item = historyLog[i];
+        var wrap = document.createElement("div");
+        wrap.className = "history-item";
+        var who = document.createElement("div");
+        who.className = "history-who";
+        who.textContent = "【" + item.who + "】";
+        var body = document.createElement("div");
+        body.className = "history-body";
+        body.textContent = item.text;
+        wrap.appendChild(who);
+        wrap.appendChild(body);
+        historyList.appendChild(wrap);
+      }
+    }
+
+    function openHistory() {
+      historyOpen = true;
+      renderHistory();
+      historyOverlay.classList.add("show");
+      historyOverlay.setAttribute("aria-hidden", "false");
+    }
+
+    function closeHistory() {
+      historyOpen = false;
+      historyOverlay.classList.remove("show");
+      historyOverlay.setAttribute("aria-hidden", "true");
     }
 
     function playSfx(tag, nodeId) {
@@ -441,6 +588,7 @@ __THEME_CSS__
     }
 
     function advance() {
+      if (historyOpen) return;
       audioUnlocked = true;
       ensureBgm();
       var node = byId[currentId];
@@ -466,11 +614,13 @@ __THEME_CSS__
       if (node.type === "scene") {
         setBackground(node.background);
         setSprite(null);
+        rebuildHistoryUpTo(node.id);
         typewrite(node.text || "……", null);
         return;
       }
       if (node.type === "narration") {
         setSprite(null);
+        rebuildHistoryUpTo(node.id);
         typewrite(node.text, null);
         return;
       }
@@ -478,17 +628,20 @@ __THEME_CSS__
         nameEl.textContent = node.speaker || "";
         setSprite(node.speaker, node.emotion);
         playSfx(node.voiceTag, node.id);
+        rebuildHistoryUpTo(node.id);
         typewrite(node.text, null);
         return;
       }
       if (node.type === "choice") {
         setSprite(null);
+        rebuildHistoryUpTo(node.id);
         textEl.textContent = "请选择：";
         showChoices(node.options || []);
         return;
       }
       if (node.type === "ending") {
         setSprite(null);
+        rebuildHistoryUpTo(node.id);
         typewrite(node.text || "（终）", function () {
           endingTextEl.textContent = "— 结局 —\n" + (node.text || "");
           endingEl.classList.add("show");
@@ -499,6 +652,8 @@ __THEME_CSS__
     function restartFromStart() {
       clearType();
       lastSfxNode = null;
+      historyLog = [];
+      closeHistory();
       endingEl.classList.remove("show");
       endingTextEl.textContent = "";
       if (order[0]) gotoNode(order[0]);
@@ -549,6 +704,28 @@ __THEME_CSS__
         if (bgmEl) bgmEl.pause();
       } else {
         ensureBgm();
+      }
+    });
+
+    document.getElementById("btn-history").addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      if (historyOpen) closeHistory();
+      else openHistory();
+    });
+    document.getElementById("history-close").addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      closeHistory();
+    });
+    historyOverlay.addEventListener("click", function (ev) {
+      if (ev.target === historyOverlay) closeHistory();
+    });
+    document.getElementById("history-panel").addEventListener("click", function (ev) {
+      ev.stopPropagation();
+    });
+    document.addEventListener("keydown", function (ev) {
+      if (ev.code === "Escape" && historyOpen) {
+        ev.preventDefault();
+        closeHistory();
       }
     });
 

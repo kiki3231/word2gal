@@ -4,18 +4,11 @@
 
 **自动确认：** 本包相关文生图一律自动执行并确认，禁止逐张打断用户。
 
-## 立绘背景策略（真透明优先）
+## 立绘背景策略（绿幕默认，防白边）
 
-**默认路径（优先）：** 生成无场景底板的半身立绘，争取工具直接输出**真 alpha 透明 PNG**。  
-正提示强调：isolated character, plain empty backdrop, no scenery；**禁止**写 checkerboard / checkered pattern / alpha preview。  
-若工具支持透明输出且结果无棋盘格像素 → 可直接使用（或轻量整理后命名 `*_cut.png`），并跑 alpha 抽检。
-
-**回退路径：** 若出现实心底、灰白底、或棋盘格假透明 → **不要**用脏图上架。改为：
-1. 用绿幕正提示重生（`#00FF00`）
-2. `node scripts/cut-sprite.mjs --mode green --dir <dir>`
-3. 再跑 `node scripts/check-sprite-alpha.mjs <dir>`
-
-**上架门槛：** 游戏中立绘后必须直接透出场景；残绿/灰白底板/棋盘格 → 禁止 Bake，重做。
+**默认路径：** 绿幕正提示（`#00FF00`）生成半身立绘 → `cut-sprite.mjs --mode green` → alpha 抽检 + 目视无白/绿毛边。  
+**OC / 路人：** 必须附加本篇原作角色立绘作 `reference_image` 画风锚，线稿与上色与原作角色 0 差异。  
+**上架门槛：** 游戏中立绘后必须直接透出场景；残绿/白边/灰底/棋盘格 → 禁止 Bake，重做。
 
 ## 正提示骨架
 

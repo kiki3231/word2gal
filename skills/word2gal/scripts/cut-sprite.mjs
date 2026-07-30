@@ -251,6 +251,10 @@ function despillHalo(data, w, h, bg, tol) {
   return cleared;
 }
 
+function isNearGreen(r, g, b) {
+  return g > 70 && g >= r + 20 && g >= b + 20;
+}
+
 function cutGreen(inputPath, outputPath) {
   const png = PNG.sync.read(fs.readFileSync(inputPath));
   const { data } = png;
@@ -263,28 +267,40 @@ function cutGreen(inputPath, outputPath) {
   }
   const { width: w, height: h } = png;
   const idx = (x, y) => (w * y + x) << 2;
-  const src = Buffer.from(data);
-  for (let y = 1; y < h - 1; y++) {
-    for (let x = 1; x < w - 1; x++) {
-      const i = idx(x, y);
-      if (src[i + 3] < 8) continue;
-      let greenN = 0;
-      for (let dy = -1; dy <= 1; dy++) {
-        for (let dx = -1; dx <= 1; dx++) {
-          if (!dx && !dy) continue;
-          const j = idx(x + dx, y + dy);
-          if (src[j + 3] < 8) greenN++;
+  // 邻接透明的近绿毛边压透（去绿边，避免发丝白/绿晕）
+  let halo = 0;
+  for (let pass = 0; pass < 2; pass++) {
+    const src = Buffer.from(data);
+    for (let y = 1; y < h - 1; y++) {
+      for (let x = 1; x < w - 1; x++) {
+        const i = idx(x, y);
+        if (src[i + 3] < 8) continue;
+        let tN = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            if (!dx && !dy) continue;
+            if (src[idx(x + dx, y + dy) + 3] < 8) tN++;
+          }
         }
-      }
-      if (greenN >= 6 && isGreenScreen(src[i], src[i + 1], src[i + 2])) {
-        data[i + 3] = 0;
+        if (tN < 3) continue;
+        const r = src[i];
+        const g = src[i + 1];
+        const b = src[i + 2];
+        if (isGreenScreen(r, g, b) || (tN >= 4 && isNearGreen(r, g, b))) {
+          data[i + 3] = 0;
+          halo++;
+        } else if (tN >= 5 && g > r + 15 && g > b + 15) {
+          // 轻去溢绿：压低绿色通道再半透明
+          data[i + 1] = Math.min(g, Math.max(r, b) + 8);
+          data[i + 3] = Math.min(data[i + 3], 160);
+        }
       }
     }
   }
   const out = cropOpaque(png, 4);
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, PNG.sync.write(out));
-  console.log(`green-cut OK: ${path.basename(outputPath)} cleared=${cleared}`);
+  console.log(`green-cut OK: ${path.basename(outputPath)} cleared=${cleared} halo=${halo}`);
 }
 
 function cutFloodClean(inputPath, outputPath) {
