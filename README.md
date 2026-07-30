@@ -14,8 +14,6 @@
 
 [快速开始](#快速开始) · [它能做什么](#它能做什么) · [成品效果](#成品效果) · [项目结构](#项目结构)
 
-仓库：[github.com/kiki3231/word2gal](https://github.com/kiki3231/word2gal)
-
 ---
 
 ## 它能做什么
@@ -68,16 +66,12 @@
 
 ## 快速开始
 
-### 1. 获取项目
+### 安装
 
-```bash
-git clone https://github.com/kiki3231/word2gal.git
-cd word2gal
-```
-
-### 2. 安装 Skill
-
-把 **`skills/word2gal/`** 整个目录复制（或软链）到当前 Agent 的 skills 目录，文件夹名保持 `word2gal`，然后重启 / 重载 Agent：
+1. 下载本项目  
+2. 将 **`skills/word2gal/`** 整个目录复制（或软链）到当前 Agent 的 skills 目录，文件夹名保持 `word2gal`  
+3. （推荐）进入 `skills/word2gal/scripts`，执行 `npm install`  
+4. 重启 / 重载 Agent  
 
 | 工具 | 常见安装位置 |
 |------|----------------|
@@ -85,16 +79,7 @@ cd word2gal
 | Claude Code | `<项目>/.claude/skills/word2gal/` 或 `~/.claude/skills/word2gal/` |
 | Trae / Codex / Kimi Code / 其它 | 按其文档的 Agent Skills 目录 |
 
-### 3. 安装脚本依赖（推荐）
-
-立绘抠图与透明抽检需要 `pngjs`：
-
-```bash
-cd skills/word2gal/scripts
-npm install
-```
-
-### 4. 使用
+### 使用
 
 在 Agent 对话中贴上文章，例如：
 
@@ -137,7 +122,7 @@ output/<短目录>/assets/
 5. **生成资源**：立绘（真透明优先）、场景、短音  
 6. **Bake**：写入模板，输出可玩 HTML  
 
-高级用户也可在仓库根手动调用：
+高级用户也可在项目根目录手动调用：
 
 ```bash
 node skills/word2gal/scripts/validate-script.mjs <script.json>

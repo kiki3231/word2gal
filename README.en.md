@@ -14,8 +14,6 @@ Ships a standard `SKILL.md`, player templates, and bake scripts. Use it with Cur
 
 [Quick start](#quick-start) · [What it does](#what-it-does) · [What you get](#what-you-get) · [Layout](#layout)
 
-Repo: [github.com/kiki3231/word2gal](https://github.com/kiki3231/word2gal)
-
 ---
 
 ## What it does
@@ -66,16 +64,12 @@ Longer works: **split by chapter**, reuse sprites when possible.
 
 ## Quick start
 
-### 1. Clone
+### Install
 
-```bash
-git clone https://github.com/kiki3231/word2gal.git
-cd word2gal
-```
-
-### 2. Install the Skill
-
-Copy (or symlink) **`skills/word2gal/`** into your Agent’s skills directory; keep the folder name `word2gal`, then reload the Agent:
+1. Download this project  
+2. Copy (or symlink) **`skills/word2gal/`** into your Agent’s skills directory; keep the folder name `word2gal`  
+3. (Recommended) `cd skills/word2gal/scripts && npm install`  
+4. Reload the Agent  
 
 | Tool | Typical path |
 |------|----------------|
@@ -83,14 +77,7 @@ Copy (or symlink) **`skills/word2gal/`** into your Agent’s skills directory; k
 | Claude Code | `<project>/.claude/skills/word2gal/` or `~/.claude/skills/word2gal/` |
 | Trae / Codex / Kimi Code / others | Follow that product’s Agent Skills docs |
 
-### 3. Script deps (recommended)
-
-```bash
-cd skills/word2gal/scripts
-npm install
-```
-
-### 4. Use it
+### Use
 
 ```text
 Use Word2Gal to turn the following into a playable visual-novel HTML:
@@ -129,7 +116,7 @@ output/<slug>/assets/
 5. Generate sprites / backgrounds / short SFX  
 6. Bake playable HTML  
 
-Optional manual commands from repo root:
+Optional manual commands from the project root:
 
 ```bash
 node skills/word2gal/scripts/validate-script.mjs <script.json>
