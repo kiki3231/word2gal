@@ -2,76 +2,95 @@
 
 English | [简体中文](./README.md)
 
-> A natural-language-driven visual novel **Agent Skill** — turn a fanfic / story draft into a playable HTML galgame.
+> *A natural-language-driven visual novel Skill — turn a fanfic draft into a click-to-play HTML galgame.*
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Agent Skill](https://img.shields.io/badge/Agent-Skill-green.svg)](skills/word2gal/SKILL.md)
+[![HTML5](https://img.shields.io/badge/Output-HTML5-orange.svg)](skills/word2gal/templates/)
+
+**Not a form filler — a full Agent workflow from story text to playable HTML.**
+
+Ships a standard `SKILL.md`, player templates, and bake scripts. Use it with Cursor, Claude Code, Trae, Codex, Kimi Code, or any tool that supports Agent Skills.
+
+[Quick start](#quick-start) · [What it does](#what-it-does) · [What you get](#what-you-get) · [Layout](#layout)
 
 Repo: [github.com/kiki3231/word2gal](https://github.com/kiki3231/word2gal)
 
-Works with **any tool that supports Agent Skills** (Cursor, Claude Code, Trae, Codex, Kimi Code, …): install this repo’s `skills/word2gal/` into that tool’s skills directory.
-
 ---
 
-## What it is
+## What it does
 
-**Word2Gal** is a standard Agent Skill (`SKILL.md` + scripts + references). You provide one natural-language story (characters, scenes, dialogue), and the agent will:
+Give the Agent a natural-language story (characters, scenes, dialogue). It runs:
 
-1. Extract characters / scenes / dialogue & narration (**keep source wording**; no silent summarization)
-2. Look up common character appearances online, then generate sprites and emotion variants
-3. Attach short vocal / light foley cues from the text, and pick BGM by tone
-4. Bake a single-page playable HTML (near-fullscreen stage)
+```text
+Your story
+    ↓ extract cast · scenes · dialogue/narration (verbatim)
+    ↓ look up looks · emotion sprites · SFX / BGM
+    ↓ bake player template
+Playable HTML (open in a browser, click to advance)
+```
 
 You do **not** fill JSON, markup DSLs, or asset paths.
+
+Good for fanfic web VNs, short galgame prototypes, and quick playtests.
 
 ---
 
 ## What you get
 
-| Capability | Result |
-|------------|--------|
-| Playable HTML | `output/<slug>/<Title>.html` — open in a browser and click to advance |
-| Sprites + backgrounds | Bust portraits (true-alpha preferred) over scene art |
-| Emotion variants | 3–5 expressions trimmed to the story mood (not a fixed five-pack) |
-| Faithful script | Dialogue / narration / inner monologue split by pacing; coverage self-check before delivery |
-| SFX | Human vocalizations (laugh, sigh, …) + evidence-based light foley (footsteps, knock, …) |
-| BGM | Melancholy / cold tone → `sad`; sweet romance → `love` (`sad` wins if both) |
-| UI themes | Injected from `mood` (warm daily / bittersweet / tense / hotblood / comedy) |
-| Branches | Explicit either-or choices in the text; deep multi-ending trees should be split by chapter |
+| Capability | In the HTML |
+|------------|-------------|
+| Stage | Near-fullscreen: background + bust sprite + dialogue box |
+| Sprites | True-alpha first; greenscreen cut as fallback; dirty plates must not ship |
+| Emotions | 3–5 expressions trimmed to story mood (not a fixed five-pack) |
+| Text | Dialogue / narration / inner monologue stay **verbatim**, split by pacing only |
+| SFX | Human vocals (laugh, sigh, …) + evidence-based light foley; no full-dialogue TTS |
+| BGM | Melancholy → `sad`; sweet romance → `love` (`sad` wins) |
+| UI themes | From `mood`: warm daily / bittersweet / tense / hotblood / comedy |
+| Branches | Explicit either-or choices; deep multi-endings should be split by chapter |
 
-If assets fail, defaults / silence are used, but the HTML must still be **playable**.
+Failed assets fall back to defaults / silence; the HTML must still be **playable**.
+
+### Soft capacity per run
+
+| Item | Sweet spot | Soft cap |
+|------|------------|----------|
+| Story length | ~800–2500 chars | ≤5000 / run |
+| Sprite leads | 2–3 | ≤4 |
+| Scenes | 1–3 | ≤5 |
+| Expressions / cast | 3–4 | ≤5 |
+
+Longer works: **split by chapter**, reuse sprites when possible.
 
 ---
 
 ## Quick start
 
-### 1. Requirements
-
-- Any Agent / IDE that supports **Agent Skills** (`SKILL.md`)
-- Local Node.js (bake / cut / validate scripts)
-- Network recommended (character lookup); image generation depends on your Agent
-
-### 2. Install the Skill
+### 1. Clone
 
 ```bash
 git clone https://github.com/kiki3231/word2gal.git
+cd word2gal
 ```
 
-Copy (or symlink) **`skills/word2gal/`** into your tool’s skills directory; keep the folder name `word2gal`:
+### 2. Install the Skill
 
-| Tool | Typical project path |
-|------|----------------------|
+Copy (or symlink) **`skills/word2gal/`** into your Agent’s skills directory; keep the folder name `word2gal`, then reload the Agent:
+
+| Tool | Typical path |
+|------|----------------|
 | Cursor | `<project>/.cursor/skills/word2gal/` |
 | Claude Code | `<project>/.claude/skills/word2gal/` or `~/.claude/skills/word2gal/` |
-| Trae / Codex / Kimi Code / others | Follow that product’s Agent Skills docs; place the same `word2gal/` folder |
+| Trae / Codex / Kimi Code / others | Follow that product’s Agent Skills docs |
 
-### 3. Install script dependencies (recommended)
+### 3. Script deps (recommended)
 
 ```bash
 cd skills/word2gal/scripts
 npm install
 ```
 
-### 4. Generate
-
-In your Agent chat:
+### 4. Use it
 
 ```text
 Use Word2Gal to turn the following into a playable visual-novel HTML:
@@ -79,30 +98,38 @@ Use Word2Gal to turn the following into a playable visual-novel HTML:
 (paste your story here)
 ```
 
-Phrases like “make a galgame / fanfic web VN” also trigger the Skill.
+Output defaults to:
+
+```text
+output/<slug>/<Title>.html
+output/<slug>/assets/
+```
 
 ---
 
-## How to use
+## What’s in the Skill
 
-### Input tips
+| Piece | Contents |
+|-------|----------|
+| **Workflow** | Extract → mood/SFX lists → character lookup → validate → assets → bake |
+| **Player** | `player-basic.html` / `player-advanced.html` (vanilla HTML/CSS/JS) |
+| **Themes** | 5 mood CSS packs |
+| **Style pack** | `daily-heal` prompts + default placeholders |
+| **BGM** | `music/sad.mp3`, `music/love.mp3` |
+| **Scripts** | validate / cut-sprite / check-alpha / bake-story |
 
-- **Sweet spot**: ~800–2500 characters of story length; soft cap ~5000 per run
-- **Leads**: 2–3 characters is best; ≤4 sprite leads per run
-- **Scenes**: 1–3; ≤5 per run
-- Make speakers, places, mood, and actions (laugh, sigh, knock, …) clear
-- Longer works: **split by chapter**, reuse existing sprites when possible
+---
 
-### Agent workflow
+## Agent workflow
 
-1. **Extract** characters, scenes, beats, in-text branches
-2. **Mood & lists** — pick `mood`, expression set, vocal/foley tags, BGM
-3. **Character deep-dive** — web multi-image check; lock age band & demeanor before drawing
-4. **Compile script JSON** → `validate-script.mjs`
-5. **Generate assets** — sprites (true alpha first, greenscreen cut as fallback), backgrounds, short SFX
-6. **Bake** into the player template → playable HTML
+1. Extract cast, scenes, beats, in-text branches  
+2. Pick `mood`, expressions, vocal/foley, BGM  
+3. Multi-image character check; lock age band & demeanor  
+4. Compile script JSON → `validate-script.mjs`  
+5. Generate sprites / backgrounds / short SFX  
+6. Bake playable HTML  
 
-### Useful commands (from repo root)
+Optional manual commands from repo root:
 
 ```bash
 node skills/word2gal/scripts/validate-script.mjs <script.json>
@@ -111,71 +138,69 @@ node skills/word2gal/scripts/check-sprite-alpha.mjs <assetsDir>
 node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
 ```
 
-If the Skill is installed elsewhere, point at that install’s `scripts/` folder instead.
-
-### Output layout
-
-```text
-output/<slug>/<Title>.html
-output/<slug>/assets/
-```
-
-`output/` is gitignored by default.
-
 ---
 
-## BGM (summary)
+## BGM
 
 | Key | File | When |
 |-----|------|------|
-| `sad` | `music/sad.mp3` | Melancholy / sad / heartbroken / bittersweet parting, or `mood=bittersweet` |
-| `love` | `music/love.mp3` | Romance / crush / confession / heartbeat — and not mainly melancholy |
+| `sad` | `music/sad.mp3` | Melancholy / bittersweet parting, or `mood=bittersweet` |
+| `love` | `music/love.mp3` | Romance / crush / confession — not mainly melancholy |
 
-**Priority: `sad` > `love`.** Details: [`skills/word2gal/reference/bgm.md`](skills/word2gal/reference/bgm.md).
+**Priority: `sad` > `love`.** See [`skills/word2gal/reference/bgm.md`](skills/word2gal/reference/bgm.md).
 
-> Bundled tracks are demo assets; clear rights before redistributing.
+> Bundled tracks are demos; clear rights before redistributing.
 
 ---
 
 ## Layout
 
 ```text
-skills/word2gal/
-├── SKILL.md                 # Skill entry (acceptance + workflow)
-├── reference/               # Extraction, cast, emotion/SFX, BGM, bake
-├── scripts/                 # validate / cut-sprite / check-alpha / bake
-├── templates/               # Player HTML + mood CSS
-├── style-packs/daily-heal/  # Sprite prompts + defaults
-└── music/                   # Bundled BGM (sad / love)
+word2gal/
+├── README.md / README.en.md
+├── LICENSE
+└── skills/word2gal/
+    ├── SKILL.md
+    ├── reference/
+    ├── scripts/
+    ├── templates/
+    ├── style-packs/daily-heal/
+    └── music/
 ```
 
 ---
 
 ## Design principles
 
-- **Natural language only** for users — no forms
-- **Faithful text** — no rewrite/compression of dialogue/narration; split by pacing only
-- **True-alpha sprites first** — greenscreen cut is fallback; dirty plates must not ship
-- **SFX follows the text** — vocals must sound human; no impact SFX posing as laughs/sighs
-- **No full-dialogue TTS**
+- Natural language only — no forms  
+- Faithful dialogue/narration — split by pacing only  
+- True-alpha sprites first — greenscreen is fallback  
+- Vocals must sound human — no impact SFX as laughs/sighs  
+- No full-dialogue TTS  
 
 Full rules: [`skills/word2gal/SKILL.md`](skills/word2gal/SKILL.md).
 
 ---
 
+## Tech stack
+
+- **Output**: HTML5 + CSS3 + vanilla JavaScript  
+- **Tooling**: Node.js (validate, cut, bake)  
+- **Browsers**: modern Chrome / Firefox / Safari / Edge  
+
+---
+
 ## Compatibility
 
-- **Needs**: Skill discovery for `SKILL.md`; shell/Node; preferably network + image generation
-- **Not guaranteed**: Agents without Skills support, local scripts, or file tools
+- **Needs**: Skill loading, shell/Node, preferably network + image gen  
+- **Not guaranteed**: Agents without Skills, local scripts, or file tools  
 
 ---
 
 ## License
 
-[MIT License](./LICENSE)
+[MIT License](LICENSE)
 
 ---
 
-## Contributing
-
-Issues and PRs welcome — style packs, themes, and BGM library ideas included.
+**If this helps you, a Star ⭐ is appreciated.**
