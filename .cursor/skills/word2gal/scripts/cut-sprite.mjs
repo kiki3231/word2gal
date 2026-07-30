@@ -5,10 +5,10 @@
  *
  * Green plate leftovers:
  *   node cut-sprite.mjs --mode green <in.png> <out.png>
- *   node cut-sprite.mjs --mode green --dir <folder>
  *
- * Light plate (conservative edge flood — only when image is light-gray plate):
+ * Light plate (edge flood + clear enclosed bg islands + despill):
  *   node cut-sprite.mjs --mode flood <in.png> <out.png>
+ *   node cut-sprite.mjs --mode flood --dir <folder>
  *
  * Default mode: green
  */
@@ -20,7 +20,6 @@ const require = createRequire(import.meta.url);
 const { PNG } = require("pngjs");
 
 function isGreenScreen(r, g, b) {
-  // 高绿、绿明显强于红蓝 —— 绿幕；人物衣服/皮肤通常不满足
   return g > 90 && g >= r + 35 && g >= b + 35 && g > (r + b) * 0.55;
 }
 
@@ -29,6 +28,10 @@ function dist(r1, g1, b1, r2, g2, b2) {
   const dg = g1 - g2;
   const db = b1 - b2;
   return Math.sqrt(dr * dr + dg * dg + db * db);
+}
+
+function chroma(r, g, b) {
+  return Math.max(r, g, b) - Math.min(r, g, b);
 }
 
 function cropOpaque(png, pad = 4) {
@@ -69,6 +72,185 @@ function cropOpaque(png, pad = 4) {
   return out;
 }
 
+function sampleBorderBg(data, w, h) {
+  const idx = (x, y) => (w * y + x) << 2;
+  const lumas = [];
+  const push = (x, y) => {
+    const i = idx(x, y);
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    lumas.push({ r, g, b, L: (r + g + b) / 3 });
+  };
+  for (let x = 0; x < w; x += Math.max(1, (w / 64) | 0)) {
+    push(x, 0);
+    push(x, h - 1);
+  }
+  for (let y = 0; y < h; y += Math.max(1, (h / 64) | 0)) {
+    push(0, y);
+    push(w - 1, y);
+  }
+  lumas.sort((a, b) => b.L - a.L);
+  const top = lumas.slice(0, Math.max(8, (lumas.length * 0.35) | 0));
+  return [
+    Math.round(top.reduce((s, c) => s + c.r, 0) / top.length),
+    Math.round(top.reduce((s, c) => s + c.g, 0) / top.length),
+    Math.round(top.reduce((s, c) => s + c.b, 0) / top.length),
+  ];
+}
+
+function isBgLike(r, g, b, bg, tol) {
+  // 只认「接近采样底板色」；禁止用高亮低彩度误伤白衣/皮肤高光
+  return dist(r, g, b, bg[0], bg[1], bg[2]) <= tol;
+}
+
+function floodFromSeeds(data, w, h, bg, tol, seeds) {
+  const idx = (x, y) => (w * y + x) << 2;
+  const visited = new Uint8Array(w * h);
+  const qx = new Int32Array(w * h);
+  const qy = new Int32Array(w * h);
+  let qh = 0;
+  let qt = 0;
+  let cleared = 0;
+  const tryPush = (x, y) => {
+    if (x < 0 || y < 0 || x >= w || y >= h) return;
+    const vi = y * w + x;
+    if (visited[vi]) return;
+    const i = idx(x, y);
+    if (data[i + 3] < 8) {
+      visited[vi] = 1;
+      return;
+    }
+    if (!isBgLike(data[i], data[i + 1], data[i + 2], bg, tol)) return;
+    visited[vi] = 1;
+    qx[qt] = x;
+    qy[qt] = y;
+    qt++;
+  };
+  for (const [x, y] of seeds) tryPush(x, y);
+  while (qh < qt) {
+    const x = qx[qh];
+    const y = qy[qh];
+    qh++;
+    data[idx(x, y) + 3] = 0;
+    cleared++;
+    tryPush(x + 1, y);
+    tryPush(x - 1, y);
+    tryPush(x, y + 1);
+    tryPush(x, y - 1);
+  }
+  return cleared;
+}
+
+/** 仅清除头发缝里接近纯白的小封闭岛 */
+function clearPureWhiteHoles(data, w, h, bg) {
+  const idx = (x, y) => (w * y + x) << 2;
+  const seen = new Uint8Array(w * h);
+  const maxHole = 900;
+  const bgL = (bg[0] + bg[1] + bg[2]) / 3;
+  let cleared = 0;
+  const qx = new Int32Array(w * h);
+  const qy = new Int32Array(w * h);
+
+  const isPurePlate = (r, g, b) => {
+    const L = (r + g + b) / 3;
+    return L >= bgL - 10 && chroma(r, g, b) <= 6 && dist(r, g, b, bg[0], bg[1], bg[2]) <= 18;
+  };
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const vi0 = y * w + x;
+      if (seen[vi0]) continue;
+      const i0 = idx(x, y);
+      if (data[i0 + 3] < 8) {
+        seen[vi0] = 1;
+        continue;
+      }
+      if (!isPurePlate(data[i0], data[i0 + 1], data[i0 + 2])) continue;
+
+      let qh = 0;
+      let qt = 0;
+      qx[qt] = x;
+      qy[qt] = y;
+      qt++;
+      seen[vi0] = 1;
+      const comp = [];
+      let touchesBorder = false;
+
+      while (qh < qt) {
+        const cx = qx[qh];
+        const cy = qy[qh];
+        qh++;
+        comp.push(cx, cy);
+        if (cx === 0 || cy === 0 || cx === w - 1 || cy === h - 1) touchesBorder = true;
+        for (const [nx, ny] of [
+          [cx + 1, cy],
+          [cx - 1, cy],
+          [cx, cy + 1],
+          [cx, cy - 1],
+        ]) {
+          if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+          const vi = ny * w + nx;
+          if (seen[vi]) continue;
+          const i = idx(nx, ny);
+          if (data[i + 3] < 8) {
+            seen[vi] = 1;
+            continue;
+          }
+          if (!isPurePlate(data[i], data[i + 1], data[i + 2])) continue;
+          seen[vi] = 1;
+          qx[qt] = nx;
+          qy[qt] = ny;
+          qt++;
+        }
+      }
+
+      const area = comp.length / 2;
+      if (!touchesBorder && area > 0 && area <= maxHole) {
+        for (let k = 0; k < comp.length; k += 2) {
+          data[idx(comp[k], comp[k + 1]) + 3] = 0;
+          cleared++;
+        }
+      }
+    }
+  }
+  return cleared;
+}
+
+/** 清除被头发等围住的小块底板岛（保留函数供调试；主流程改用 clearPureWhiteHoles） */
+function clearEnclosedBgIslands(data, w, h, bg, tol) {
+  return clearPureWhiteHoles(data, w, h, bg);
+}
+
+/** 邻接透明的浅色毛边压透（严格：必须像底板，避免吃白衣） */
+function despillHalo(data, w, h, bg, tol) {
+  const idx = (x, y) => (w * y + x) << 2;
+  const src = Buffer.from(data);
+  let cleared = 0;
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      const i = idx(x, y);
+      if (src[i + 3] < 8) continue;
+      let tN = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (!dx && !dy) continue;
+          if (src[idx(x + dx, y + dy) + 3] < 8) tN++;
+        }
+      }
+      if (tN < 4) continue;
+      const r = src[i];
+      const g = src[i + 1];
+      const b = src[i + 2];
+      if (dist(r, g, b, bg[0], bg[1], bg[2]) <= tol) {
+        data[i + 3] = 0;
+        cleared++;
+      }
+    }
+  }
+  return cleared;
+}
+
 function cutGreen(inputPath, outputPath) {
   const png = PNG.sync.read(fs.readFileSync(inputPath));
   const { data } = png;
@@ -79,7 +261,6 @@ function cutGreen(inputPath, outputPath) {
       cleared++;
     }
   }
-  // 边缘轻羽化：邻接绿幕的半透像素压透明，不伤实心身体
   const { width: w, height: h } = png;
   const idx = (x, y) => (w * y + x) << 2;
   const src = Buffer.from(data);
@@ -106,69 +287,38 @@ function cutGreen(inputPath, outputPath) {
   console.log(`green-cut OK: ${path.basename(outputPath)} cleared=${cleared}`);
 }
 
-function cutFloodConservative(inputPath, outputPath) {
+function cutFloodClean(inputPath, outputPath) {
   const png = PNG.sync.read(fs.readFileSync(inputPath));
   const { width: w, height: h, data } = png;
-  const idx = (x, y) => (w * y + x) << 2;
-  // 仅角落采样，低容差，单遍，禁止浅灰全局规则
-  const samples = [
-    [2, 2],
-    [w - 3, 2],
-    [2, h - 3],
-    [w - 3, h - 3],
-  ].map(([x, y]) => {
-    const i = idx(x, y);
-    return [data[i], data[i + 1], data[i + 2]];
-  });
-  const bg = [
-    Math.round(samples.reduce((s, c) => s + c[0], 0) / 4),
-    Math.round(samples.reduce((s, c) => s + c[1], 0) / 4),
-    Math.round(samples.reduce((s, c) => s + c[2], 0) / 4),
-  ];
-  const tol = 30;
-  const visited = new Uint8Array(w * h);
-  const qx = new Int32Array(w * h);
-  const qy = new Int32Array(w * h);
-  let qh = 0;
-  let qt = 0;
-  const tryPush = (x, y) => {
-    if (x < 0 || y < 0 || x >= w || y >= h) return;
-    const vi = y * w + x;
-    if (visited[vi]) return;
-    const i = idx(x, y);
-    if (dist(data[i], data[i + 1], data[i + 2], bg[0], bg[1], bg[2]) > tol) return;
-    visited[vi] = 1;
-    qx[qt] = x;
-    qy[qt] = y;
-    qt++;
-  };
+  const bg = sampleBorderBg(data, w, h);
+  const bgL = (bg[0] + bg[1] + bg[2]) / 3;
+  // 近白底板必须低压容差，否则会沿着缝啃进皮肤高光/白衣
+  const tol = bgL >= 240 ? 22 : bgL >= 200 ? 28 : 32;
+
+  const seeds = [];
   for (let x = 0; x < w; x++) {
-    tryPush(x, 0);
-    tryPush(x, h - 1);
+    seeds.push([x, 0], [x, h - 1]);
   }
   for (let y = 0; y < h; y++) {
-    tryPush(0, y);
-    tryPush(w - 1, y);
+    seeds.push([0, y], [w - 1, y]);
   }
-  while (qh < qt) {
-    const x = qx[qh];
-    const y = qy[qh];
-    qh++;
-    data[idx(x, y) + 3] = 0;
-    tryPush(x + 1, y);
-    tryPush(x - 1, y);
-    tryPush(x, y + 1);
-    tryPush(x, y - 1);
-  }
+
+  const edgeCleared = floodFromSeeds(data, w, h, bg, tol, seeds);
+  // 第二遍：只清「几乎纯白、很小」的封闭岛（头发缝），不动白衣大色块
+  const islandCleared = clearPureWhiteHoles(data, w, h, bg);
+  const haloCleared = despillHalo(data, w, h, bg, tol);
+
   const out = cropOpaque(png, 4);
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, PNG.sync.write(out));
-  console.log(`flood-cut(conservative) OK: ${path.basename(outputPath)}`);
+  console.log(
+    `flood-cut OK: ${path.basename(outputPath)} bg=${bg.join(",")} tol=${tol} edge=${edgeCleared} island=${islandCleared} halo=${haloCleared}`,
+  );
 }
 
 function runOne(mode, input, output) {
-  if (mode === "flood") cutFloodConservative(input, output);
-  else cutGreen(input, output);
+  if (mode === "green") cutGreen(input, output);
+  else cutFloodClean(input, output);
 }
 
 const args = process.argv.slice(2);
@@ -189,7 +339,7 @@ if (rest[0] === "--dir") {
   runOne(mode, path.resolve(rest[0]), path.resolve(rest[1]));
 } else {
   console.error(
-    "Usage: node cut-sprite.mjs [--mode green|flood] <in.png> <out.png> | --dir <folder>",
+    "Usage: node cut-sprite.mjs [--mode flood|green] <in.png> <out.png> | --dir <folder>",
   );
   process.exit(1);
 }

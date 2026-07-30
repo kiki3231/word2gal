@@ -236,6 +236,7 @@ __THEME_CSS__
         <button type="button" id="btn-load">读档</button>
         <button type="button" id="btn-mute">音效开</button>
       </div>
+      <audio id="bgm" loop preload="metadata"></audio>
       <img id="sprite" class="hidden" alt="" decoding="async" />
       <div id="ui">
         <div id="textbox">
@@ -290,6 +291,7 @@ __THEME_CSS__
     var muted = false;
     var audioUnlocked = false;
     var lastSfxNode = null;
+    var bgmStarted = false;
     var saveKey = "w2g:" + ((script.meta && script.meta.title) || "story");
 
     var stage = document.getElementById("stage");
@@ -301,6 +303,7 @@ __THEME_CSS__
     var endingTextEl = document.getElementById("ending-text");
     var textbox = document.getElementById("textbox");
     var hintEl = document.getElementById("hint");
+    var bgmEl = document.getElementById("bgm");
 
     function assetUrl(group, key) {
       var bag = assets[group] || {};
@@ -308,6 +311,21 @@ __THEME_CSS__
       if (bag.default) return bag.default;
       if (group === "chars" && bag.default_neutral) return bag.default_neutral;
       return "";
+    }
+
+    function ensureBgm() {
+      if (!bgmEl || muted) return;
+      var key = (script.meta && script.meta.bgm) || "default";
+      var url = assetUrl("bgm", key) || assetUrl("bgm", "default");
+      if (!url) return;
+      if (bgmEl.getAttribute("data-src") !== url) {
+        bgmEl.src = url;
+        bgmEl.setAttribute("data-src", url);
+      }
+      bgmEl.volume = 0.32;
+      if (audioUnlocked) {
+        bgmEl.play().then(function () { bgmStarted = true; }).catch(function () {});
+      }
     }
 
     function speakerId(displayName) {
@@ -424,6 +442,7 @@ __THEME_CSS__
 
     function advance() {
       audioUnlocked = true;
+      ensureBgm();
       var node = byId[currentId];
       if (node && node.type === "dialogue" && node.voiceTag) {
         playSfx(node.voiceTag, node.id);
@@ -526,9 +545,16 @@ __THEME_CSS__
       ev.stopPropagation();
       muted = !muted;
       ev.currentTarget.textContent = muted ? "音效关" : "音效开";
+      if (muted) {
+        if (bgmEl) bgmEl.pause();
+      } else {
+        ensureBgm();
+      }
     });
 
     if (script.meta && script.meta.title) document.title = script.meta.title;
+    // 预载 BGM 路径，等用户首次点击后再播
+    ensureBgm();
     setBackground("default");
     render();
   })();

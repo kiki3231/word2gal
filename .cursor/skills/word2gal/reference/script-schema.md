@@ -96,6 +96,16 @@ node .cursor/skills/word2gal/scripts/validate-script.mjs path/to/script.json
 
 成功时打印 `OK`，退出码 `0`；失败时打印错误列表（每行一条），退出码 `1`。
 
-## 示例
+## 示例（最小形状）
 
-见 `scripts/fixtures/valid-script.json`。
+```json
+{
+  "meta": { "title": "示例", "stylePack": "daily-heal", "mood": "warm_daily" },
+  "nodes": [
+    { "id": "n1", "type": "dialogue", "speaker": "角色", "text": "你好。", "emotion": "neutral" },
+    { "id": "end", "type": "ending", "text": "完" }
+  ]
+}
+```
+
+完整字段以本文件上文与 `validate-script.mjs` 为准。
