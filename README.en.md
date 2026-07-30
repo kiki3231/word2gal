@@ -40,10 +40,25 @@ Good for fanfic web VNs, short galgame prototypes, and quick playtests.
 
 ## What you get
 
+Open the generated HTML and you’ll see something like:
+
+<div align="center">
+
+| Camp night | Rooftop flashback |
+|:---:|:---:|
+| <img src="media/demo/demo-camp.png" alt="Camp night demo" width="420" /> | <img src="media/demo/demo-rooftop.png" alt="Rooftop flashback demo" width="420" /> |
+
+<img src="media/demo/demo-history.png" alt="History backlog panel" width="720" />
+
+<sub>Demo story *Morning Star*: stage sprites · speaker nameplate · history backlog</sub>
+
+</div>
+
 | Capability | In the HTML |
 |------------|-------------|
-| Stage | Near-fullscreen: background + bust sprite + dialogue box |
-| Sprites | True-alpha first; greenscreen cut as fallback; dirty plates must not ship |
+| Stage | Near-fullscreen: background + bust sprite + dialogue box (with speaker name) |
+| History | Toolbar **History**: half-panel list of 【speaker】/【narration】 + read text |
+| Sprites | Greenscreen cut by default; dirty plates must not ship; no cross-character fallback |
 | Emotions | 3–5 expressions trimmed to story mood (not a fixed five-pack) |
 | Text | Dialogue / narration / inner monologue stay **verbatim**, split by pacing only |
 | SFX | Human vocals (laugh, sigh, …) + evidence-based light foley; no full-dialogue TTS |

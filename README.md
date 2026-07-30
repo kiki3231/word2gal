@@ -42,10 +42,23 @@
 
 打开生成的 HTML 后，大致会看到：
 
+<div align="center">
+
+| 营地夜谈 | 天台闪回 |
+|:---:|:---:|
+| <img src="media/demo/demo-camp.png" alt="营地夜谈演示" width="420" /> | <img src="media/demo/demo-rooftop.png" alt="天台闪回演示" width="420" /> |
+
+<img src="media/demo/demo-history.png" alt="历史记录面板" width="720" />
+
+<sub>演示作《启明星》：场景立绘 · 说话人名牌 · 历史回溯</sub>
+
+</div>
+
 | 能力 | 实际效果 |
 |------|----------|
-| 游玩界面 | 近全屏舞台：场景背景 + 角色半身立绘 + 对白框，点击 / 空格推进 |
-| 立绘 | 优先真透明 PNG；失败再绿幕抠图；残底不上架 |
+| 游玩界面 | 近全屏舞台：场景背景 + 角色半身立绘 + 对白框（含说话人名），点击 / 空格推进 |
+| 历史 | 工具栏「历史」半屏列表：【说话人】/【旁白】+ 已读正文 |
+| 立绘 | 默认绿幕抠图上架；残底（绿/白边等）不上架；缺差分不串到其他角色 |
 | 表情差分 | 按文章成色裁剪 3～5 个（如 smile / soft_shy / surprise），不是固定五件套硬套 |
 | 文本 | 对白 / 旁白 / 内心独白尽量用**原文**，只按节奏切开；交付前覆盖自检 |
 | 拟声 | 笑、叹等人口技 + 文中有据的脚步 / 敲门等轻环境音；不对白全文 TTS |
@@ -156,6 +169,7 @@ node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
 word2gal/
 ├── README.md / README.en.md
 ├── LICENSE
+├── media/demo/                  # README 演示截图
 └── skills/word2gal/
     ├── SKILL.md                 # Skill 入口（验收标准与工作流）
     ├── reference/               # 抽取、角色、情绪拟声、BGM、Bake 等规范
@@ -171,9 +185,10 @@ word2gal/
 
 - **只写自然语言**，不填表  
 - **原文保真**：禁止压缩润色对白 / 旁白；只可按节奏切开  
-- **立绘真透明优先**：绿幕抠图是回退；残底不上架  
+- **立绘绿幕抠图为准**：残底不上架；路人 / OC 跟同篇原作画风  
 - **拟声跟人走**：口技必须是人声；禁止用咚哐冒充笑 / 叹  
 - **不对白全文 TTS**
+- **历史可回看**：【说话人】+ 正文
 
 完整约束见 [`skills/word2gal/SKILL.md`](skills/word2gal/SKILL.md)。
 
