@@ -21,7 +21,7 @@
 
 **界面主题：** `meta.mood` 同时决定游玩 UI 主题，见 `reference/ui-themes.md`（自动注入对应 `templates/themes/*.css`）。
 
-**背景音乐：** 伤感/冷基调（含 `bittersweet`）→ `meta.bgm = "sad"`；否则恋爱向 → `"love"`；伤感优先。见 `reference/bgm.md`（与 mood 独立判定，但 `bittersweet` 强烈倾向 `sad`）。
+**背景音乐：** 见 `bgm.md`（`sad` > `happy` > `love`；与 mood 独立判定）。
 
 ## B. 本篇表情差分清单
 

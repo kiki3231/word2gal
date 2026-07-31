@@ -95,7 +95,7 @@ function bake(scriptPath, assetsDir, outDir) {
 
   const bgm = {};
   const bgmKey = (script.meta && script.meta.bgm) || "";
-  const bgmFiles = { love: "love.mp3", sad: "sad.mp3" };
+  const bgmFiles = { love: "love.mp3", sad: "sad.mp3", happy: "happy.mp3" };
   const bgmFile = bgmFiles[bgmKey];
   if (bgmFile) {
     const musicSrc = path.join(skillRoot, "music", bgmFile);

@@ -656,6 +656,13 @@ __THEME_CSS__
       closeHistory();
       endingEl.classList.remove("show");
       endingTextEl.textContent = "";
+      if (bgmEl && bgmEl.src) {
+        try { bgmEl.currentTime = 0; } catch (e) {}
+        if (!muted) {
+          bgmEl.volume = 0.32;
+          bgmEl.play().then(function () { bgmStarted = true; }).catch(function () {});
+        }
+      }
       if (order[0]) gotoNode(order[0]);
     }
 
