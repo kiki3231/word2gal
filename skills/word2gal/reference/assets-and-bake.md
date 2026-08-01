@@ -13,6 +13,12 @@
 
 另需：`speakerToId`、`chars.default`、`bgs.default`。有 BGM 时另需 `meta.bgm` + 对应 `bgm.sad`、`bgm.happy` 或 `bgm.love`。
 
+### `speaker-map.json`（推荐必写）
+
+路径：`assets/speaker-map.json`，形状 `{ "显示名": "立绘id", ... }`。  
+也可用 `meta.speakerMap`（同形）。Bake **不再**写死演示角色名；缺映射时仅做通用推断（id 全等 / 唯一模糊 / 单角色兜底），其余 **warn** 并可能无立绘。  
+首次 Bake 若文件不存在且已推断出映射，会写出该文件供复核。
+
 ## 生成顺序（对照验收标准）
 
 1. 已完成抽取、成色、网查角色卡  
@@ -26,19 +32,23 @@
 9. 失败 ≤2 次 → defaults / 静音  
 
 ```bash
-# 抠图回退（需要时）→ alpha 抽检 → Bake
+# 原文覆盖 → 抠图回退（需要时）→ alpha 抽检 → Bake
+node skills/word2gal/scripts/validate-coverage.mjs <source.txt> <script.json>
 node skills/word2gal/scripts/cut-sprite.mjs --mode green --dir <assetsDir>
 node skills/word2gal/scripts/check-sprite-alpha.mjs <assetsDir>
 node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
+# 模式二（特效模板，与 basic 同舞台能力）：
+node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir> --template advanced
 ```
 
 ## Bake
 
-1. `validate-script.mjs` 通过  
-2. 复制 `player-basic.html`（或 advanced）；**仅**替换 `__SCRIPT_JSON__` / `__ASSETS_JSON__` / `__THEME_ID__` / `__THEME_CSS__`（立绘用真透明或 `*_cut.png`）  
+1. `validate-script.mjs` + `validate-coverage.mjs` 通过  
+2. 按 `--template basic|advanced`（默认 basic）读取模板；**仅**替换 `__SCRIPT_JSON__` / `__ASSETS_JSON__` / `__THEME_ID__` / `__THEME_CSS__`（立绘用真透明或 `*_cut.png`）  
 3. 有 `meta.bgm`：`music/<key>.mp3` → `assets/bgm/<key>.mp3` + 写入 `assets.bgm`  
-4. 禁止给 `#sprite` 加叠底 blend/透明度  
+4. 舞台为左右双立绘（`#sprite-left` / `#sprite-right`）；禁止给立绘加叠底 blend；说话人高亮、非说话人半透明由播放器处理  
 5. 输出 `output/<短目录>/<作品名>.html` + `assets/`（作品名=`meta.title`，勿用 `index.html`）  
+6. 确保 `speaker-map.json`（或 `meta.speakerMap`）覆盖全部 `dialogue.speaker`  
 
 
 ## 自检清单

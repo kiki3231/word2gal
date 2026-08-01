@@ -15,8 +15,8 @@ Agent Skill：用户交**一篇自然语言文章** → 可玩 HTML 视觉小说
 
 ## 验收底线（必须满足）
 
-1. **抽取成戏**：角色/场景/对话（及文中分支）→ 可玩 HTML；**原文不改写**，只可按节奏切开；交付前原文覆盖自检（`extraction.md`）。
-2. **立绘跟脸**：网查通行长相，**1～2 张对照**并锁年龄/神态后再生成；禁止臆造、小孩↔大人错画、**不串脸**。
+1. **抽取成戏**：角色/场景/对话（及文中分支）→ 可玩 HTML；**原文不改写**，只可按节奏切开；交付前跑通 `validate-coverage.mjs`（`extraction.md`）。
+2. **立绘跟脸**：网查通行长相，**1～2 张对照**并锁年龄/神态后再生成；禁止臆造、小孩↔大人错画、**不串脸**；拆章须复用 `character-cards/`。
 3. **情绪差分**：按文章核心情绪成色裁剪本篇 expressions（非固定五件套）。
 4. **拟声短音**：文章驱动的 `voiceTag`（vocal 口技须人声 + 有据 foley）；规则见 `emotion-and-sfx.md`；禁止全文 TTS、禁止咚哐冒充口技。
 
@@ -24,7 +24,8 @@ Agent Skill：用户交**一篇自然语言文章** → 可玩 HTML 视觉小说
 
 - 立绘：**绿幕抠净**（细节见风格包 / `assets-and-bake.md`）；残底不上架
 - **路人/OC 画风锚**：有原作锚原作；无原作/全员 fallback → `style-packs/daily-heal/defaults/anchors/`（女主/男主/路人）；同篇画风 0 差异
-- **不串脸**：`speakerToId` 覆盖全部说话人；缺差分只回退同角色 `neutral`
+- **不串脸**：`speaker-map.json` 或 `meta.speakerMap` 覆盖全部说话人；缺差分只回退同角色 `neutral`
+- **双人舞台**：播放器左右两位立绘；可用 `dialogue.side`；省略则自动分配；说话人高亮
 - **生图一律自动确认**：进入制作后立绘/背景/差分全部自动执行，禁止逐张问用户
 - BGM：优先级 `sad` > `happy` > `love`（判定见 `bgm.md`）
 - 禁止改播放器核心 JS；只换 `__SCRIPT_JSON__` / `__ASSETS_JSON__`（及主题占位）
@@ -73,21 +74,23 @@ Agent Skill：用户交**一篇自然语言文章** → 可玩 HTML 视觉小说
 
 ### 3. 网查对照 → 角色卡
 
-按 `character-lookup.md`（每个主要角色）：
+按 `character-card.md` / `character-lookup.md`（每个主要角色）：
 
-1. 蒸馏外貌/年龄学段/神态/标志物  
-2. 联网检索，**收集 1～2 张**对照（禁止零对照瞎画）  
-3. 锁 `ageBand` / `demeanor` + 不可变特征 → 写入角色卡  
+1. **先读** `character-cards/<id>.json`：已有则复用 id/对照/invariants/ageBand，只更新本篇 `expressions`  
+2. 无卡：蒸馏外貌/年龄学段/神态 → 联网检索 **1～2 张**对照 → 锁 `ageBand` / `demeanor` / `invariants`  
+3. **立即落盘** `character-cards/<id>.json`（对照图进 `character-cards/refs/<id>/`）  
 4. 查不到：文内描写 + `lookup=fallback`，交付告知  
 
 无联网则全员 fallback 并说明。出图后核对年龄/串脸；不合格重画再 Bake。
 
 ### 4. 编译剧本 JSON
 
-按 `script-schema.md`。`dialogue.emotion` / `voiceTag` 只能来自第 2 步清单。
+按 `script-schema.md`。`dialogue.emotion` / `voiceTag` 只能来自第 2 步清单。  
+写好 `assets/speaker-map.json`（或 `meta.speakerMap`）。用户原文另存 `source.txt`。
 
 ```bash
 node skills/word2gal/scripts/validate-script.mjs <script.json>
+node skills/word2gal/scripts/validate-coverage.mjs <source.txt> <script.json>
 ```
 
 ### 5. 生成立绘/背景/拟声
@@ -98,17 +101,22 @@ node skills/word2gal/scripts/validate-script.mjs <script.json>
 
 ### 6. Bake
 
-复制模板，替换 `__SCRIPT_JSON__` / `__ASSETS_JSON__` / `__THEME_ID__` / `__THEME_CSS__`（主题见 `ui-themes.md`）。命令见 `assets-and-bake.md`。  
-输出 `output/<短目录>/《作品名》.html`（作品名=`meta.title`，禁止一律 `index.html`）。
+```bash
+node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
+# 模式二：
+node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir> --template advanced
+```
+
+仅替换占位符（主题见 `ui-themes.md`）。输出 `output/<短目录>/《作品名》.html`（作品名=`meta.title`，禁止一律 `index.html`）。
 
 ### 7. 交付前自检
 
-- [ ] 主要角色/场景/对话进流程；原文覆盖通过；未改写浓缩
-- [ ] 主角有形象来源（1～2 张对照或文内回退）；年龄/神态合理；无串脸/小孩↔大人
-- [ ] 立绘绿幕抠净 + alpha 抽检 + 目视无残底；路人/OC 画风与同篇一致（含内置锚）
-- [ ] `speakerToId` 全覆盖；差分⊆成色；拟声⊆文章（vocal/foley）；无全文 TTS
-- [ ] 校验通过；缺资源有回退；可玩；自然语言摘要（成色/差分/声音/占位）
+- [ ] 主要角色/场景/对话进流程；`validate-coverage` OK；未改写浓缩
+- [ ] 主角有形象来源；角色卡已落盘；续章复用同一 id；年龄/神态合理；无串脸
+- [ ] 立绘绿幕抠净 + alpha 抽检 + 目视无残底；路人/OC 画风与同篇一致
+- [ ] `speaker-map` 全覆盖；差分⊆成色；拟声⊆文章；无全文 TTS
+- [ ] 校验通过；缺资源有回退；可玩（双人同框正常）；自然语言摘要
 
 ## 模式二
 
-同一剧本填入 `templates/player-advanced.html`；缺失则用 basic 并说明。
+`bake-story.mjs … --template advanced`（与 basic 同双人舞台/主题；缺模板则 basic 并说明）。

@@ -16,6 +16,8 @@ Agent 在 Skill 工作流中生成的剧本结构；**用户不手写此 JSON**�
 | `title` | string | 是 |
 | `stylePack` | string | 是（风格包 id，如 `daily-heal`） |
 | `mood` | string | 强烈建议（文章核心情绪成色，见 `emotion-and-sfx.md`） |
+| `bgm` | string | 建议（`sad` / `happy` / `love`，见 `bgm.md`） |
+| `speakerMap` | object | 可选；`显示名 → 立绘 id`。优先仍写 `assets/speaker-map.json` |
 
 ## `nodes[]` 公共字段
 
@@ -56,6 +58,7 @@ Agent 在 Skill 工作流中生成的剧本结构；**用户不手写此 JSON**�
 | `text` | string | 是 |
 | `emotion` | string | 是，枚举见下 |
 | `voiceTag` | string | 否（短反应音标签，如 `gasp`） |
+| `side` | string | 否；`left` \| `right`。省略则播放器自动分配左右位（双人同框） |
 
 **`emotion` 枚举（本篇实际只用成色裁剪后的子集）：**
 
@@ -92,6 +95,8 @@ Agent 在 Skill 工作流中生成的剧本结构；**用户不手写此 JSON**�
 
 ```bash
 node skills/word2gal/scripts/validate-script.mjs path/to/script.json
+# 原文覆盖（交付前强制；source 为用户原文纯文本）
+node skills/word2gal/scripts/validate-coverage.mjs path/to/source.txt path/to/script.json
 ```
 
 成功时打印 `OK`，退出码 `0`；失败时打印错误列表（每行一条），退出码 `1`。

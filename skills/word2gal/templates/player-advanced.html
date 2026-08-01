@@ -1,111 +1,364 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="__THEME_ID__">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Word2Gal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
   <style>
+    /* 基础布局：近全屏；主题变量见下方注入块 */
     :root {
-      --ink: #2a2420;
-      --panel: rgba(255, 248, 240, 0.92);
-      --accent: #c4785a;
-      --choice: #fff8f0;
+      --ink: #f7f1ea;
+      --ink-dim: #c9b8a6;
+      --wood-deep: #0c0a09;
+      --gold: #e0b06a;
+      --panel: rgba(18, 14, 12, 0.88);
+      --panel-edge: rgba(224, 176, 106, 0.45);
+      --page-bg: #0c0a09;
+      --stage-radius: 0px;
+      --name-ink: #16110f;
     }
+    /* W2G_THEME_CSS_START */
+__THEME_CSS__
+    /* W2G_THEME_CSS_END */
     * { box-sizing: border-box; }
     html, body {
-      margin: 0; height: 100%;
-      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-      background: #1a1512; color: var(--ink);
+      margin: 0; height: 100%; width: 100%;
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+      background: var(--page-bg);
+      color: var(--ink);
       user-select: none;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+    #frame {
+      height: 100%;
+      width: 100%;
+      display: grid;
+      place-items: stretch;
+      padding: 0;
     }
     #stage {
-      position: relative; width: 100%; height: 100%;
-      max-width: 1280px; margin: 0 auto; overflow: hidden;
-      background: #000 center/cover no-repeat;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      max-height: none;
+      aspect-ratio: auto;
+      overflow: hidden;
+      border-radius: var(--stage-radius);
+      background: #000 center / cover no-repeat;
+      isolation: isolate;
+      transition: background-image 0.45s ease;
     }
-    #sprite {
-      position: absolute; bottom: 18%; left: 50%;
-      transform: translateX(-50%);
-      height: 70%; max-width: 45%; object-fit: contain;
+    #bg-fx {
+      position: absolute; inset: 0;
       pointer-events: none;
+      z-index: 1;
+      background:
+        radial-gradient(ellipse at center, transparent 48%, rgba(0,0,0,0.38) 100%),
+        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 30%, rgba(0,0,0,0.28) 100%);
     }
-    #sprite.hidden { display: none; }
+    #sprites {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .sprite {
+      position: absolute;
+      bottom: 8%;
+      height: min(88vh, 92%);
+      max-width: 42%;
+      object-fit: contain;
+      object-position: bottom center;
+      mix-blend-mode: normal;
+      opacity: 0;
+      transition: opacity 0.28s ease, transform 0.28s ease, filter 0.28s ease;
+      filter: drop-shadow(0 16px 28px rgba(0,0,0,0.55));
+      image-rendering: auto;
+    }
+    .sprite.side-left {
+      left: 2%;
+      right: auto;
+      transform: translateY(10px);
+    }
+    .sprite.side-right {
+      right: 2%;
+      left: auto;
+      transform: translateY(10px);
+    }
+    .sprite.show { opacity: 0.55; transform: translateY(0); }
+    .sprite.show.active {
+      opacity: 1;
+      filter: drop-shadow(0 16px 28px rgba(0,0,0,0.55)) brightness(1.05);
+      z-index: 4;
+    }
+    .sprite.hidden { display: none; }
+    #stage.fx-fade { animation: w2g-fade 0.45s ease; }
+    #stage.fx-shake { animation: w2g-shake 0.35s linear; }
+    @keyframes w2g-fade {
+      from { filter: brightness(0.25); } to { filter: none; }
+    }
+    @keyframes w2g-shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
     #ui {
-      position: absolute; left: 0; right: 0; bottom: 0;
-      padding: 1rem 1.25rem 1.25rem;
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      padding: 0 clamp(1.2rem, 3vw, 2.5rem) clamp(1.2rem, 2.5vh, 2rem);
+      z-index: 5;
     }
     #textbox {
-      background: var(--panel); border-radius: 16px;
-      padding: 1rem 1.25rem 1.5rem; min-height: 7.5rem;
-      box-shadow: 0 8px 28px rgba(0,0,0,.25);
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--panel-edge);
+      border-radius: 6px 20px 20px 20px;
+      padding: 1.35rem 1.6rem 1.55rem;
+      min-height: clamp(7.5rem, 18vh, 10rem);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 18px 48px rgba(0,0,0,0.4);
       cursor: pointer;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    #textbox::before {
+      content: "";
+      position: absolute;
+      left: 1.2rem; right: 1.2rem; top: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: 0.7;
     }
     #name {
-      display: inline-block; font-weight: 700; color: var(--accent);
-      margin-bottom: .35rem; min-height: 1.2em;
+      display: inline-block;
+      font-family: "Noto Serif SC", "Noto Sans SC", serif;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--name-ink);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 70%, #fff), var(--gold));
+      padding: 0.3rem 1rem 0.34rem;
+      border-radius: 999px;
+      margin-bottom: 0.45rem;
+      min-height: 1.2em;
+      transform: translateY(-1.6rem);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.25);
     }
-    #text { font-size: 1.1rem; line-height: 1.65; white-space: pre-wrap; }
+    #name:empty { display: none; }
+    #text {
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei UI", sans-serif;
+      font-size: clamp(1.12rem, 2vw, 1.4rem);
+      font-weight: 500;
+      line-height: 1.9;
+      letter-spacing: 0.045em;
+      white-space: pre-wrap;
+      color: var(--ink);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+      -webkit-font-smoothing: antialiased;
+    }
+    #hint {
+      position: absolute;
+      right: 1.2rem; bottom: 0.8rem;
+      color: var(--gold);
+      font-size: 0.9rem;
+      opacity: 0.75;
+      animation: blink 1.2s steps(2, end) infinite;
+    }
+    @keyframes blink { 50% { opacity: 0.2; } }
     #choices {
-      display: none; flex-direction: column; gap: .6rem;
-      margin-top: .75rem;
+      display: none;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-top: 0.4rem;
     }
     #choices.show { display: flex; }
     #choices button {
-      border: 1px solid rgba(42,36,32,.15); background: var(--choice);
-      border-radius: 12px; padding: .75rem 1rem; font-size: 1rem;
-      text-align: left; cursor: pointer; color: var(--ink);
+      border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+      background: color-mix(in srgb, var(--panel) 90%, #000);
+      border-radius: 12px;
+      padding: 0.85rem 1.1rem;
+      font-size: 1.05rem;
+      text-align: left;
+      cursor: pointer;
+      color: var(--ink);
+      font-family: inherit;
+      transition: border-color 0.2s, transform 0.15s;
     }
-    #choices button:hover { border-color: var(--accent); }
+    #choices button:hover {
+      border-color: var(--gold);
+      transform: translateX(4px);
+    }
     #toolbar {
-      position: absolute; top: .75rem; right: .75rem;
-      display: flex; gap: .4rem; z-index: 5;
+      position: absolute;
+      top: 1rem; right: 1rem;
+      display: flex; gap: 0.45rem;
+      z-index: 6;
     }
     #toolbar button {
-      border: 0; border-radius: 999px; padding: .4rem .8rem;
-      background: rgba(255,248,240,.85); color: var(--ink);
-      font-size: .85rem; cursor: pointer;
+      border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
+      border-radius: 999px;
+      padding: 0.42rem 0.95rem;
+      background: color-mix(in srgb, var(--panel) 92%, #000);
+      color: var(--ink-dim);
+      font-size: 0.88rem;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      font-family: inherit;
     }
+    #toolbar button:hover { color: var(--gold); border-color: var(--gold); }
     #ending-banner {
-      display: none; position: absolute; inset: 0;
-      background: rgba(20,16,14,.55); align-items: center; justify-content: center;
-      color: #fff8f0; font-size: 1.4rem; text-align: center; padding: 2rem;
+      display: none;
+      position: absolute; inset: 0;
+      background: rgba(8,6,5,0.66);
+      align-items: center; justify-content: center;
+      flex-direction: column;
+      gap: 1.4rem;
+      color: var(--ink);
+      font-family: "Noto Serif SC", serif;
+      font-size: clamp(1.3rem, 2.8vw, 1.9rem);
+      text-align: center;
+      padding: 2rem;
+      z-index: 7;
+      line-height: 1.75;
     }
-    #ending-banner.show { display: flex; }
-    #stage.fx-fade { animation: w2g-fade .45s ease; }
-    #stage.fx-shake { animation: w2g-shake .35s linear; }
-    @keyframes w2g-fade {
-      from { filter: brightness(0.2); } to { filter: none; }
+    #ending-banner.show { display: flex; animation: fadeIn 0.5s ease; }
+    #ending-text { white-space: pre-wrap; max-width: 36rem; }
+    #btn-restart {
+      border: 1px solid var(--gold);
+      border-radius: 999px;
+      padding: 0.7rem 1.6rem;
+      background: color-mix(in srgb, var(--panel) 85%, var(--gold));
+      color: var(--ink);
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei UI", sans-serif;
+      font-size: 1.05rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
     }
-    @keyframes w2g-shake {
-      0%,100% { transform: translateX(0); }
-      25% { transform: translateX(-6px); }
-      75% { transform: translateX(6px); }
+    #btn-restart:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
     }
-    #text.fx-pop { animation: w2g-pop .25s ease; }
-    @keyframes w2g-pop {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: none; }
+    #history-overlay {
+      display: none;
+      position: absolute; inset: 0;
+      z-index: 8;
+      background: rgba(6, 5, 4, 0.55);
+      align-items: stretch;
+      justify-content: flex-end;
+    }
+    #history-overlay.show { display: flex; }
+    #history-panel {
+      width: min(420px, 92vw);
+      height: 100%;
+      background: color-mix(in srgb, var(--panel) 96%, #000);
+      border-left: 1px solid var(--panel-edge);
+      box-shadow: -12px 0 40px rgba(0,0,0,0.45);
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(14px);
+    }
+    #history-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.1rem 0.75rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--panel-edge) 55%, transparent);
+      font-family: "Noto Serif SC", serif;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+    }
+    #history-close {
+      border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+      border-radius: 999px;
+      padding: 0.28rem 0.85rem;
+      background: transparent;
+      color: var(--ink-dim);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+    }
+    #history-close:hover { color: var(--gold); border-color: var(--gold); }
+    #history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.85rem 1.1rem 1.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .history-item { line-height: 1.65; }
+    .history-who {
+      font-size: 0.82rem;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      margin-bottom: 0.2rem;
+    }
+    .history-body {
+      font-size: 0.98rem;
+      color: var(--ink);
+      white-space: pre-wrap;
+      opacity: 0.92;
+    }
+    .history-empty {
+      color: var(--ink-dim);
+      font-size: 0.95rem;
+      padding: 1rem 0;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @media (max-width: 720px) {
+      .sprite { max-width: 48%; height: 58%; bottom: 22%; }
+      .sprite.side-left { left: 0; }
+      .sprite.side-right { right: 0; }
+      #ui { padding: 0 0.75rem 0.85rem; }
+      #history-panel { width: 100%; }
     }
   </style>
 </head>
 <body>
-  <div id="stage">
-    <audio id="bgm" loop preload="none"></audio>
-    <div id="toolbar">
-      <button type="button" id="btn-save" title="存档">存档</button>
-      <button type="button" id="btn-load" title="读档">读档</button>
-      <button type="button" id="btn-mute" title="音量">音效开</button>
-      <button type="button" id="btn-bgm" title="BGM">BGM开</button>
-    </div>
-    <img id="sprite" class="hidden" alt="" />
-    <div id="ui">
-      <div id="textbox">
-        <div id="name"></div>
-        <div id="text"></div>
-        <div id="choices"></div>
+  <div id="frame">
+    <div id="stage">
+      <div id="bg-fx" aria-hidden="true"></div>
+      <div id="toolbar">
+        <button type="button" id="btn-history">历史</button>
+        <button type="button" id="btn-save">存档</button>
+        <button type="button" id="btn-load">读档</button>
+        <button type="button" id="btn-mute">音效开</button>
+      </div>
+      <audio id="bgm" loop preload="metadata"></audio>
+      <div id="sprites" aria-hidden="true">
+        <img id="sprite-left" class="sprite side-left hidden" alt="" decoding="async" />
+        <img id="sprite-right" class="sprite side-right hidden" alt="" decoding="async" />
+      </div>
+      <div id="ui">
+        <div id="textbox">
+          <div id="name"></div>
+          <div id="text"></div>
+          <div id="choices"></div>
+          <div id="hint">▼</div>
+        </div>
+      </div>
+      <div id="history-overlay" aria-hidden="true">
+        <div id="history-panel" role="dialog" aria-label="历史记录">
+          <div id="history-head">
+            <span>历史</span>
+            <button type="button" id="history-close">关闭</button>
+          </div>
+          <div id="history-list"></div>
+        </div>
+      </div>
+      <div id="ending-banner">
+        <div id="ending-text"></div>
+        <button type="button" id="btn-restart">重新开始</button>
       </div>
     </div>
-    <div id="ending-banner"></div>
   </div>
 
   <!-- AGENT: replace only the JSON text content of these two tags. Do not edit player logic below. -->
@@ -144,48 +397,60 @@
     var typeTimer = null;
     var fullText = "";
     var muted = false;
-    var bgmMuted = false;
     var audioUnlocked = false;
+    var lastSfxNode = null;
+    var bgmStarted = false;
     var saveKey = "w2g:" + ((script.meta && script.meta.title) || "story");
+    var historyLog = [];
+    var historyOpen = false;
 
     var stage = document.getElementById("stage");
-    var sprite = document.getElementById("sprite");
+    var spriteLeft = document.getElementById("sprite-left");
+    var spriteRight = document.getElementById("sprite-right");
     var nameEl = document.getElementById("name");
     var textEl = document.getElementById("text");
     var choicesEl = document.getElementById("choices");
     var endingEl = document.getElementById("ending-banner");
+    var endingTextEl = document.getElementById("ending-text");
     var textbox = document.getElementById("textbox");
+    var hintEl = document.getElementById("hint");
     var bgmEl = document.getElementById("bgm");
-
-    function pulseFx(cls) {
-      stage.classList.remove("fx-fade", "fx-shake");
-      void stage.offsetWidth;
-      stage.classList.add(cls);
-    }
-
-    function ensureBgm() {
-      var url = assetUrl("bgm", "default");
-      if (!url || !bgmEl) return;
-      if (bgmEl.getAttribute("src") !== url) {
-        bgmEl.src = url;
-      }
-      if (!bgmMuted && audioUnlocked) {
-        bgmEl.volume = 0.35;
-        bgmEl.play().catch(function () {});
-      }
-    }
+    var historyOverlay = document.getElementById("history-overlay");
+    var historyList = document.getElementById("history-list");
+    /** @type {{ left: string|null, right: string|null }} charId per slot */
+    var stageSlots = { left: null, right: null };
+    /** @type {Record<string, "left"|"right">} */
+    var sideByCharId = {};
+    var lastActiveSide = "left";
 
     function assetUrl(group, key) {
       var bag = assets[group] || {};
       if (key && bag[key]) return bag[key];
+      // chars: never fall back to another character via bag.default
+      if (group === "chars") return "";
       if (bag.default) return bag.default;
-      if (group === "chars" && bag.default_neutral) return bag.default_neutral;
       return "";
+    }
+
+    function ensureBgm() {
+      if (!bgmEl || muted) return;
+      var key = (script.meta && script.meta.bgm) || "default";
+      var url = assetUrl("bgm", key) || assetUrl("bgm", "default");
+      if (!url) return;
+      if (bgmEl.getAttribute("data-src") !== url) {
+        bgmEl.src = url;
+        bgmEl.setAttribute("data-src", url);
+      }
+      bgmEl.volume = 0.32;
+      if (audioUnlocked) {
+        bgmEl.play().then(function () { bgmStarted = true; }).catch(function () {});
+      }
     }
 
     function speakerId(displayName) {
       var map = assets.speakerToId || {};
-      return map[displayName] || displayName;
+      if (map[displayName]) return map[displayName];
+      return "";
     }
 
     function setBackground(bgKey) {
@@ -193,30 +458,179 @@
       stage.style.backgroundImage = url ? 'url("' + url + '")' : "none";
     }
 
-    function setSprite(speaker, emotion) {
+    function pulseFx(cls) {
+      stage.classList.remove("fx-fade", "fx-shake");
+      void stage.offsetWidth;
+      stage.classList.add(cls);
+    }
+
+    function charUrl(id, emotion) {
+      var bag = assets.chars || {};
+      var key = id + "_" + (emotion || "neutral");
+      return bag[key] || bag[id + "_neutral"] || "";
+    }
+
+    function elForSide(side) {
+      return side === "right" ? spriteRight : spriteLeft;
+    }
+
+    function clearSide(side) {
+      var el = elForSide(side);
+      el.classList.remove("show", "active");
+      el.classList.add("hidden");
+      el.removeAttribute("src");
+      var who = stageSlots[side];
+      if (who && sideByCharId[who] === side) delete sideByCharId[who];
+      stageSlots[side] = null;
+    }
+
+    function clearSprites() {
+      clearSide("left");
+      clearSide("right");
+      sideByCharId = {};
+      lastActiveSide = "left";
+    }
+
+    function resolveSide(charId, explicit) {
+      if (explicit === "left" || explicit === "right") {
+        if (sideByCharId[charId] && sideByCharId[charId] !== explicit) {
+          var old = sideByCharId[charId];
+          if (stageSlots[old] === charId) stageSlots[old] = null;
+        }
+        sideByCharId[charId] = explicit;
+        return explicit;
+      }
+      if (sideByCharId[charId]) return sideByCharId[charId];
+      if (!stageSlots.left) {
+        sideByCharId[charId] = "left";
+        return "left";
+      }
+      if (!stageSlots.right) {
+        sideByCharId[charId] = "right";
+        return "right";
+      }
+      var steal = lastActiveSide === "left" ? "right" : "left";
+      var evicted = stageSlots[steal];
+      if (evicted && sideByCharId[evicted] === steal) delete sideByCharId[evicted];
+      sideByCharId[charId] = steal;
+      return steal;
+    }
+
+    function paintSlot(side, charId, emotion, active) {
+      var el = elForSide(side);
+      var url = charUrl(charId, emotion);
+      if (!url) {
+        clearSide(side);
+        return;
+      }
+      var prev = stageSlots[side];
+      if (prev && prev !== charId && sideByCharId[prev] === side) {
+        delete sideByCharId[prev];
+      }
+      stageSlots[side] = charId;
+      el.classList.remove("hidden");
+      function mark() {
+        el.classList.add("show");
+        if (active) el.classList.add("active");
+        else el.classList.remove("active");
+      }
+      if (el.getAttribute("src") !== url) {
+        el.classList.remove("show", "active");
+        el.onload = mark;
+        el.src = url;
+        if (el.complete) mark();
+      } else {
+        mark();
+      }
+    }
+
+    /** @param {string|null} speaker @param {string} [emotion] @param {"left"|"right"|""} [sideHint] */
+    function setSprite(speaker, emotion, sideHint) {
       if (!speaker) {
-        sprite.classList.add("hidden");
-        sprite.removeAttribute("src");
+        spriteLeft.classList.remove("active");
+        spriteRight.classList.remove("active");
         return;
       }
       var id = speakerId(speaker);
-      var key = id + "_" + (emotion || "neutral");
-      var url = assetUrl("chars", key) || assetUrl("chars", id + "_neutral") || assetUrl("chars", "default");
-      if (!url) {
-        sprite.classList.add("hidden");
+      if (!id) {
+        spriteLeft.classList.remove("active");
+        spriteRight.classList.remove("active");
         return;
       }
-      sprite.src = url;
-      sprite.classList.remove("hidden");
+      var side = resolveSide(id, sideHint || "");
+      if (side === "left" && stageSlots.right === id) clearSide("right");
+      if (side === "right" && stageSlots.left === id) clearSide("left");
+      paintSlot(side, id, emotion || "neutral", true);
+      var other = side === "left" ? "right" : "left";
+      var otherEl = elForSide(other);
+      if (stageSlots[other]) otherEl.classList.remove("active");
+      lastActiveSide = side;
     }
 
-    function playSfx(tag) {
+    function pushHistory(who, text) {
+      if (!text) return;
+      historyLog.push({ who: who || "旁白", text: text });
+    }
+
+    function rebuildHistoryUpTo(targetId) {
+      historyLog = [];
+      for (var i = 0; i < order.length; i++) {
+        var n = byId[order[i]];
+        if (!n) continue;
+        if (n.type === "narration") pushHistory("旁白", n.text);
+        else if (n.type === "dialogue") pushHistory(n.speaker || "旁白", n.text);
+        else if (n.type === "ending") pushHistory("旁白", n.text || "（终）");
+        if (order[i] === targetId) break;
+      }
+    }
+
+    function renderHistory() {
+      historyList.innerHTML = "";
+      if (!historyLog.length) {
+        var empty = document.createElement("div");
+        empty.className = "history-empty";
+        empty.textContent = "还没有已读内容";
+        historyList.appendChild(empty);
+        return;
+      }
+      for (var i = historyLog.length - 1; i >= 0; i--) {
+        var item = historyLog[i];
+        var wrap = document.createElement("div");
+        wrap.className = "history-item";
+        var who = document.createElement("div");
+        who.className = "history-who";
+        who.textContent = "【" + item.who + "】";
+        var body = document.createElement("div");
+        body.className = "history-body";
+        body.textContent = item.text;
+        wrap.appendChild(who);
+        wrap.appendChild(body);
+        historyList.appendChild(wrap);
+      }
+    }
+
+    function openHistory() {
+      historyOpen = true;
+      renderHistory();
+      historyOverlay.classList.add("show");
+      historyOverlay.setAttribute("aria-hidden", "false");
+    }
+
+    function closeHistory() {
+      historyOpen = false;
+      historyOverlay.classList.remove("show");
+      historyOverlay.setAttribute("aria-hidden", "true");
+    }
+
+    function playSfx(tag, nodeId) {
       if (muted || !tag || !audioUnlocked) return;
+      if (nodeId && lastSfxNode === nodeId) return;
       var url = assetUrl("sfx", tag);
       if (!url) return;
+      lastSfxNode = nodeId || null;
       try {
         var a = new Audio(url);
-        a.volume = 0.7;
+        a.volume = 0.55;
         a.play().catch(function () {});
       } catch (e) {}
     }
@@ -246,7 +660,7 @@
           clearType();
           if (done) done();
         }
-      }, 28);
+      }, 26);
     }
 
     function revealText() {
@@ -257,6 +671,7 @@
     }
 
     function showChoices(options) {
+      hintEl.style.display = "none";
       choicesEl.innerHTML = "";
       options.forEach(function (opt) {
         var btn = document.createElement("button");
@@ -274,6 +689,7 @@
     function hideChoices() {
       choicesEl.classList.remove("show");
       choicesEl.innerHTML = "";
+      hintEl.style.display = "";
     }
 
     function gotoNode(id) {
@@ -284,10 +700,15 @@
     }
 
     function advance() {
+      if (historyOpen) return;
       audioUnlocked = true;
+      ensureBgm();
+      var node = byId[currentId];
+      if (node && node.type === "dialogue" && node.voiceTag) {
+        playSfx(node.voiceTag, node.id);
+      }
       if (revealText()) return;
       if (choicesEl.classList.contains("show")) return;
-      var node = byId[currentId];
       if (!node) return;
       if (node.type === "ending") return;
       if (node.type === "choice") return;
@@ -302,45 +723,68 @@
       endingEl.classList.remove("show");
       nameEl.textContent = "";
 
-      textEl.classList.remove("fx-pop");
-      void textEl.offsetWidth;
-      textEl.classList.add("fx-pop");
-
       if (node.type === "scene") {
         setBackground(node.background);
-        setSprite(null);
+        clearSprites();
         pulseFx("fx-fade");
-        ensureBgm();
+        rebuildHistoryUpTo(node.id);
         typewrite(node.text || "……", null);
         return;
       }
       if (node.type === "narration") {
         setSprite(null);
+        rebuildHistoryUpTo(node.id);
         typewrite(node.text, null);
         return;
       }
       if (node.type === "dialogue") {
         nameEl.textContent = node.speaker || "";
-        setSprite(node.speaker, node.emotion);
+        setSprite(node.speaker, node.emotion, node.side || "");
         if (node.emotion === "surprise" || node.emotion === "angry") pulseFx("fx-shake");
-        playSfx(node.voiceTag);
+        playSfx(node.voiceTag, node.id);
+        rebuildHistoryUpTo(node.id);
         typewrite(node.text, null);
         return;
       }
       if (node.type === "choice") {
         setSprite(null);
+        rebuildHistoryUpTo(node.id);
         textEl.textContent = "请选择：";
         showChoices(node.options || []);
         return;
       }
       if (node.type === "ending") {
-        setSprite(null);
+        clearSprites();
+        rebuildHistoryUpTo(node.id);
         typewrite(node.text || "（终）", function () {
-          endingEl.textContent = "— 结局 —\n" + (node.text || "");
+          endingTextEl.textContent = "— 结局 —\n" + (node.text || "");
           endingEl.classList.add("show");
         });
       }
     }
+
+    function restartFromStart() {
+      clearType();
+      lastSfxNode = null;
+      historyLog = [];
+      clearSprites();
+      closeHistory();
+      endingEl.classList.remove("show");
+      endingTextEl.textContent = "";
+      if (bgmEl && bgmEl.src) {
+        try { bgmEl.currentTime = 0; } catch (e) {}
+        if (!muted) {
+          bgmEl.volume = 0.32;
+          bgmEl.play().then(function () { bgmStarted = true; }).catch(function () {});
+        }
+      }
+      if (order[0]) gotoNode(order[0]);
+    }
+
+    document.getElementById("btn-restart").addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      restartFromStart();
+    });
 
     textbox.addEventListener("click", function (ev) {
       if (ev.target.closest("#choices")) return;
@@ -378,16 +822,38 @@
       ev.stopPropagation();
       muted = !muted;
       ev.currentTarget.textContent = muted ? "音效关" : "音效开";
+      if (muted) {
+        if (bgmEl) bgmEl.pause();
+      } else {
+        ensureBgm();
+      }
     });
-    document.getElementById("btn-bgm").addEventListener("click", function (ev) {
+
+    document.getElementById("btn-history").addEventListener("click", function (ev) {
       ev.stopPropagation();
-      bgmMuted = !bgmMuted;
-      ev.currentTarget.textContent = bgmMuted ? "BGM关" : "BGM开";
-      if (bgmMuted) bgmEl.pause();
-      else ensureBgm();
+      if (historyOpen) closeHistory();
+      else openHistory();
+    });
+    document.getElementById("history-close").addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      closeHistory();
+    });
+    historyOverlay.addEventListener("click", function (ev) {
+      if (ev.target === historyOverlay) closeHistory();
+    });
+    document.getElementById("history-panel").addEventListener("click", function (ev) {
+      ev.stopPropagation();
+    });
+    document.addEventListener("keydown", function (ev) {
+      if (ev.code === "Escape" && historyOpen) {
+        ev.preventDefault();
+        closeHistory();
+      }
     });
 
     if (script.meta && script.meta.title) document.title = script.meta.title;
+    // 预载 BGM 路径，等用户首次点击后再播
+    ensureBgm();
     setBackground("default");
     render();
   })();

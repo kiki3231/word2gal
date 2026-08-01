@@ -101,11 +101,11 @@ npm install
 
 | 能力 | 实际效果 |
 |------|----------|
-| 游玩界面 | 近全屏舞台：场景背景 + 角色半身立绘 + 对白框（含说话人名），点击 / 空格推进 |
+| 游玩界面 | 近全屏舞台：场景背景 + **左右双立绘**（说话人高亮）+ 对白框（含说话人名），点击 / 空格推进 |
 | 历史 | 工具栏「历史」半屏列表：【说话人】/【旁白】+ 已读正文 |
-| 立绘 | 默认绿幕抠图上架；残底（绿/白边等）不上架；缺差分不串到其他角色 |
+| 立绘 | 默认绿幕抠图上架；残底（绿/白边等）不上架；缺差分不串到其他角色；拆章复用 `character-cards/` |
 | 表情差分 | 按文章成色裁剪 3～5 个（如 smile / soft_shy / surprise），不是固定五件套硬套 |
-| 文本 | 对白 / 旁白 / 内心独白尽量用**原文**，只按节奏切开；交付前覆盖自检 |
+| 文本 | 对白 / 旁白 / 内心独白尽量用**原文**，只按节奏切开；交付前 `validate-coverage` |
 | 拟声 | 笑、叹等人口技 + 文中有据的脚步 / 敲门等轻环境音；不对白全文 TTS |
 | BGM | 伤感冷基调 → `sad`；恋爱甜向 → `love`（伤感优先） |
 | UI 主题 | 随 `mood` 切换：日常暖 / 虐心 / 悬疑 / 燃 / 搞笑 |
@@ -181,7 +181,7 @@ output/<短目录>/assets/
 | **UI 主题** | 5 套 mood CSS：warm_daily / bittersweet / tense / hotblood / comedy |
 | **风格包** | `daily-heal` 立绘提示 + 默认占位图 |
 | **BGM** | `music/sad.mp3`、`music/love.mp3` |
-| **脚本** | validate / cut-sprite / check-alpha / bake-story |
+| **脚本** | validate-script / validate-coverage / cut-sprite / check-alpha / bake-story |
 
 ---
 
@@ -190,17 +190,19 @@ output/<短目录>/assets/
 1. **抽取**：角色、场景、节拍（对白 / 旁白）、文中分支  
 2. **成色与清单**：定 `mood`；表情差分；vocal / foley；判定 BGM  
 3. **人物深度分析**：多图对照，锁定年龄段与神态后再出图  
-4. **编译剧本 JSON** → `validate-script.mjs`  
-5. **生成资源**：立绘（默认绿幕抠图）、场景、短音  
-6. **Bake**：写入模板，输出可玩 HTML  
+4. **编译剧本 JSON** → `validate-script.mjs` + `validate-coverage.mjs`  
+5. **生成资源**：立绘（默认绿幕抠图）、场景、短音；写 `speaker-map.json`  
+6. **Bake**：写入模板（`--template basic|advanced`），输出可玩 HTML  
 
 高级用户也可在项目根目录手动调用：
 
 ```bash
 node skills/word2gal/scripts/validate-script.mjs <script.json>
+node skills/word2gal/scripts/validate-coverage.mjs <source.txt> <script.json>
 node skills/word2gal/scripts/cut-sprite.mjs --mode green --dir <assetsDir>
 node skills/word2gal/scripts/check-sprite-alpha.mjs <assetsDir>
 node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
+# 可选：node …/bake-story.mjs … --template advanced
 ```
 
 ---

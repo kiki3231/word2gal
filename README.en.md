@@ -97,11 +97,11 @@ Story source: [Bilibili opus](https://www.bilibili.com/opus/1100588492074778661)
 
 | Capability | In the HTML |
 |------------|-------------|
-| Stage | Near-fullscreen: background + bust sprite + dialogue box (with speaker name) |
+| Stage | Near-fullscreen: background + **dual left/right sprites** (active speaker highlighted) + dialogue box |
 | History | Toolbar **History**: half-panel list of 【speaker】/【narration】 + read text |
-| Sprites | Greenscreen cut by default; dirty plates must not ship; no cross-character fallback |
+| Sprites | Greenscreen cut by default; dirty plates must not ship; reuse `character-cards/` across chapters |
 | Emotions | 3–5 expressions trimmed to story mood (not a fixed five-pack) |
-| Text | Dialogue / narration / inner monologue stay **verbatim**, split by pacing only |
+| Text | Dialogue / narration / inner monologue stay **verbatim**; run `validate-coverage` before bake |
 | SFX | Human vocals (laugh, sigh, …) + evidence-based light foley; no full-dialogue TTS |
 | BGM | Melancholy → `sad`; sweet romance → `love` (`sad` wins) |
 | UI themes | From `mood`: warm daily / bittersweet / tense / hotblood / comedy |
@@ -173,7 +173,7 @@ Open the HTML in a browser (BGM may start after the first click).
 | **Themes** | 5 mood CSS packs |
 | **Style pack** | `daily-heal` prompts + default placeholders |
 | **BGM** | `music/sad.mp3`, `music/love.mp3` |
-| **Scripts** | validate / cut-sprite / check-alpha / bake-story |
+| **Scripts** | validate-script / validate-coverage / cut-sprite / check-alpha / bake-story |
 
 ---
 
@@ -182,17 +182,19 @@ Open the HTML in a browser (BGM may start after the first click).
 1. Extract cast, scenes, beats, in-text branches  
 2. Pick `mood`, expressions, vocal/foley, BGM  
 3. Multi-image character check; lock age band & demeanor  
-4. Compile script JSON → `validate-script.mjs`  
-5. Generate sprites / backgrounds / short SFX  
-6. Bake playable HTML  
+4. Compile script JSON → `validate-script.mjs` + `validate-coverage.mjs`  
+5. Generate sprites / backgrounds / short SFX; write `speaker-map.json`  
+6. Bake playable HTML (`--template basic|advanced`)  
 
 Optional manual commands from the project root:
 
 ```bash
 node skills/word2gal/scripts/validate-script.mjs <script.json>
+node skills/word2gal/scripts/validate-coverage.mjs <source.txt> <script.json>
 node skills/word2gal/scripts/cut-sprite.mjs --mode green --dir <assetsDir>
 node skills/word2gal/scripts/check-sprite-alpha.mjs <assetsDir>
 node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
+# optional: … --template advanced
 ```
 
 ---

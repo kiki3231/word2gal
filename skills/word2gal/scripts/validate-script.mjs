@@ -112,6 +112,13 @@ export function validateScript(data) {
         ) {
           errors.push(`${prefix}: voiceTag 若存在须为非空字符串`);
         }
+        if (
+          n.side !== undefined &&
+          n.side !== "left" &&
+          n.side !== "right"
+        ) {
+          errors.push(`${prefix}: side 若存在须为 left|right`);
+        }
         break;
       case "choice": {
         if (!Array.isArray(n.options) || n.options.length === 0) {

@@ -19,17 +19,33 @@
 | `expressions` | **本篇**情绪差分子集（见 `emotion-and-sfx.md`），含 `neutral` |
 | `voiceProfile` | 拟声音色档：`bright_soft` / `calm_low` / `cheerful` / `dark_low` |
 
+## 落盘与跨章复用（强制约定）
+
+拆章 / 续作时必须复用同一张脸，禁止每章重新「凭印象」建卡。
+
+| 项 | 约定 |
+|----|------|
+| 目录 | 仓库或本次输出旁：`character-cards/<id>.json`（每角色一文件） |
+| 对照图 | `character-cards/refs/<id>/`（1～2 张网查对照，路径写入 `referenceImage`） |
+| 写入时机 | 第 3 步角色卡完成后**立即落盘**；Bake 前再读一次核对 |
+| 续章读取 | 新章开始：若已有 `character-cards/<id>.json` → **直接复用** `id` / `ageBand` / `demeanor` / `invariants` / 对照图；只更新本篇 `expressions` 与文内新服装线索 |
+| 同人系列 | 同一 `id` 跨章、跨 `output/<短目录>/` 不变；`displayName` 可变（昵称），`speaker-map` 仍指向同一 `id` |
+
+**禁止：** 续章新建不同 `id` 表示同一角色；禁止丢掉 `invariants` 后重抽脸。
+
 ## 流程要点
 
 1. 先 `extraction.md` 得到外貌/性格/学段线索  
-2. 再 `character-lookup.md`：**1～2 张对照 + 年龄锁** → 填完整角色卡 
-3. `expressions` 来自本篇成色裁剪，不是永远固定五件套  
-4. 出图前确认 `ageBand` 与 `invariants` 已写入，并进入 prompt  
+2. **先查** `character-cards/` 是否已有该角色；有则复用，无则走 `character-lookup.md`  
+3. 网查：**1～2 张对照 + 年龄锁** → 填完整角色卡并落盘  
+4. `expressions` 来自本篇成色裁剪，不是永远固定五件套  
+5. 出图前确认 `ageBand` 与 `invariants` 已写入，并进入 prompt  
 
 ## 示例
 
 - 网查成功：高中角色、对照 3 张通行图 → `lookup=web`，`ageBand=teen`，`hair=...`，`referenceNote=对照官方立绘与两张高共识图，锁定双马尾与学年观感`  
 - OC 回退：文内「小学生、短发」→ `lookup=fallback`，`ageBand=child`，短参数仅来自文章  
+- 续章：读到已有 `character-cards/taki.json` → 沿用 id/对照/invariants，本篇只裁 `expressions`
 
 ## 规则
 

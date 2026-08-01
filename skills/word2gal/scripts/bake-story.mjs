@@ -1,11 +1,11 @@
 /**
  * Bake a playable folder with theme + assets.
  * Usage:
- *   node bake-story.mjs <script.json> <assetsDir> <outDir>
+ *   node bake-story.mjs <script.json> <assetsDir> <outDir> [--template basic|advanced]
  */
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, "..");
@@ -17,6 +17,18 @@ const THEMES = new Set([
   "hotblood",
   "comedy",
 ]);
+
+const EMOTION_SUFFIXES = [
+  "neutral",
+  "smile",
+  "laugh",
+  "surprise",
+  "sad",
+  "cry",
+  "angry",
+  "tense",
+  "soft_shy",
+];
 
 function resolveTheme(mood) {
   const m = String(mood || "warm_daily").trim();
@@ -34,7 +46,126 @@ function titleToFilename(title) {
   return (cleaned || "未命名作品") + ".html";
 }
 
-function bake(scriptPath, assetsDir, outDir) {
+function parseArgs(argv) {
+  const positional = [];
+  let template = "basic";
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--template") {
+      template = String(argv[++i] || "basic").trim();
+      continue;
+    }
+    if (a.startsWith("--template=")) {
+      template = a.slice("--template=".length).trim();
+      continue;
+    }
+    positional.push(a);
+  }
+  if (template !== "basic" && template !== "advanced") {
+    throw new Error("--template 必须是 basic 或 advanced");
+  }
+  return { positional, template };
+}
+
+/** Collect base char ids from keys like `umi_neutral` / `umi_smile`. */
+export function collectCharIds(chars) {
+  const ids = new Set();
+  for (const key of Object.keys(chars || {})) {
+    if (key === "default") continue;
+    let base = key;
+    for (const emo of EMOTION_SUFFIXES) {
+      const suffix = "_" + emo;
+      if (key.endsWith(suffix)) {
+        base = key.slice(0, -suffix.length);
+        break;
+      }
+    }
+    if (base) ids.add(base);
+  }
+  return [...ids];
+}
+
+function normalizeToken(s) {
+  return String(s || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_\-·•．.]+/g, "");
+}
+
+/**
+ * Build speakerToId without demo-specific hardcoding.
+ * Priority: assets/speaker-map.json → meta.speakerMap → exact id match →
+ * unique fuzzy match on id/display tokens. Unmapped speakers are warned.
+ */
+export function buildSpeakerToId(script, chars, fileMap) {
+  const speakerToId = {};
+  const fromFile =
+    fileMap && typeof fileMap === "object" && !Array.isArray(fileMap)
+      ? fileMap
+      : {};
+  Object.assign(speakerToId, fromFile);
+
+  const metaMap =
+    script.meta &&
+    script.meta.speakerMap &&
+    typeof script.meta.speakerMap === "object" &&
+    !Array.isArray(script.meta.speakerMap)
+      ? script.meta.speakerMap
+      : {};
+  for (const [k, v] of Object.entries(metaMap)) {
+    if (speakerToId[k]) continue;
+    if (typeof v === "string" && v.trim()) speakerToId[k] = v.trim();
+  }
+
+  const charIds = collectCharIds(chars);
+  const idByNorm = new Map();
+  for (const id of charIds) {
+    idByNorm.set(normalizeToken(id), id);
+  }
+
+  const speakers = new Set();
+  for (const n of script.nodes || []) {
+    if (n && n.type === "dialogue" && n.speaker) speakers.add(String(n.speaker));
+  }
+
+  const warnings = [];
+  for (const sp of speakers) {
+    if (speakerToId[sp]) continue;
+
+    if (charIds.includes(sp)) {
+      speakerToId[sp] = sp;
+      continue;
+    }
+
+    const norm = normalizeToken(sp);
+    if (idByNorm.has(norm)) {
+      speakerToId[sp] = idByNorm.get(norm);
+      continue;
+    }
+
+    const fuzzy = charIds.filter((id) => {
+      const nid = normalizeToken(id);
+      return nid.includes(norm) || norm.includes(nid);
+    });
+    if (fuzzy.length === 1) {
+      speakerToId[sp] = fuzzy[0];
+      continue;
+    }
+
+    if (charIds.length === 1) {
+      speakerToId[sp] = charIds[0];
+      continue;
+    }
+
+    warnings.push(
+      `speaker "${sp}" 未映射到立绘 id（请写 assets/speaker-map.json 或 meta.speakerMap）`,
+    );
+  }
+
+  return { speakerToId, warnings };
+}
+
+function bake(scriptPath, assetsDir, outDir, template) {
   const script = JSON.parse(fs.readFileSync(scriptPath, "utf8"));
   const themeId = resolveTheme(script.meta && script.meta.mood);
   const workTitle = (script.meta && script.meta.title) || "未命名作品";
@@ -43,6 +174,13 @@ function bake(scriptPath, assetsDir, outDir) {
     path.join(skillRoot, "templates", "themes", themeId + ".css"),
     "utf8",
   );
+
+  const templateFile =
+    template === "advanced" ? "player-advanced.html" : "player-basic.html";
+  const templatePath = path.join(skillRoot, "templates", templateFile);
+  if (!fs.existsSync(templatePath)) {
+    throw new Error("缺少模板: " + templateFile);
+  }
 
   const rel = (name) => "assets/" + name;
   const chars = {};
@@ -73,25 +211,19 @@ function bake(scriptPath, assetsDir, outDir) {
     if (prefer) chars.default = chars[prefer];
   }
 
-  // speaker map: assets/speaker-map.json 优先，否则启发式
-  const speakerToId = {};
+  let fileMap = null;
   const mapPath = path.join(assetsDir, "speaker-map.json");
   if (fs.existsSync(mapPath)) {
-    Object.assign(speakerToId, JSON.parse(fs.readFileSync(mapPath, "utf8")));
+    fileMap = JSON.parse(fs.readFileSync(mapPath, "utf8"));
   }
-  for (const n of script.nodes || []) {
-    if (n.type === "dialogue" && n.speaker) {
-      const sp = n.speaker;
-      if (speakerToId[sp]) continue;
-      const hit = Object.keys(chars).find((k) => k.startsWith("umiri") && sp.includes("海"))
-        || Object.keys(chars).find((k) => k.startsWith("taki") && sp.includes("立"));
-      if (sp === "海铃") speakerToId[sp] = "umiri";
-      else if (sp === "立希") speakerToId[sp] = "taki";
-      else if (hit) {/* keep legacy */}
-    }
+  const { speakerToId, warnings } = buildSpeakerToId(script, chars, fileMap);
+  for (const w of warnings) console.warn("warn: " + w);
+
+  // Persist inferred map so Agent/复盘可改
+  if (!fs.existsSync(mapPath) && Object.keys(speakerToId).length) {
+    fs.writeFileSync(mapPath, JSON.stringify(speakerToId, null, 2) + "\n", "utf8");
+    console.log("wrote " + mapPath);
   }
-  if (!speakerToId["海铃"] && chars.umiri_neutral) speakerToId["海铃"] = "umiri";
-  if (!speakerToId["立希"] && chars.taki_neutral) speakerToId["立希"] = "taki";
 
   const bgm = {};
   const bgmKey = (script.meta && script.meta.bgm) || "";
@@ -113,32 +245,52 @@ function bake(scriptPath, assetsDir, outDir) {
 
   const assets = { speakerToId, chars, bgs, sfx, bgm };
 
-  let html = fs.readFileSync(path.join(skillRoot, "templates", "player-basic.html"), "utf8");
+  let html = fs.readFileSync(templatePath, "utf8");
   if (html.includes("__THEME_ID__")) {
     html = html.replace("__THEME_ID__", themeId);
   }
-  if (!html.includes("__THEME_CSS__")) {
+  if (html.includes("__THEME_CSS__")) {
+    html = html.replace("__THEME_CSS__", "\n" + themeCss + "\n    ");
+  } else if (template === "advanced") {
+    console.warn(
+      "warn: advanced 模板无 __THEME_CSS__，已跳过主题注入（请使用已同步的 advanced）",
+    );
+  } else {
     throw new Error("player template missing __THEME_CSS__ placeholder");
   }
-  html = html.replace("__THEME_CSS__", "\n" + themeCss + "\n    ");
   html = html.replace("__SCRIPT_JSON__", JSON.stringify(script));
   html = html.replace("__ASSETS_JSON__", JSON.stringify(assets));
-  if (html.includes("__THEME_CSS__") || html.includes("__SCRIPT_JSON__")) {
+  if (
+    html.includes("__THEME_CSS__") ||
+    html.includes("__SCRIPT_JSON__") ||
+    html.includes("__ASSETS_JSON__")
+  ) {
     throw new Error("bake left unresolved placeholders");
   }
 
   fs.mkdirSync(outDir, { recursive: true });
-  // 清理旧版 index.html，避免和作品名文件并存混淆
   const legacy = path.join(outDir, "index.html");
   if (fs.existsSync(legacy)) fs.unlinkSync(legacy);
   const outFile = path.join(outDir, htmlName);
   fs.writeFileSync(outFile, html, "utf8");
-  console.log(`baked ${outFile} theme=${themeId} title=${workTitle}`);
+  console.log(
+    `baked ${outFile} theme=${themeId} template=${template} title=${workTitle}`,
+  );
 }
 
-const [scriptPath, assetsDir, outDir] = process.argv.slice(2);
-if (!scriptPath || !assetsDir || !outDir) {
-  console.error("Usage: node bake-story.mjs <script.json> <assetsDir> <outDir>");
-  process.exit(1);
+function main() {
+  const { positional, template } = parseArgs(process.argv.slice(2));
+  const [scriptPath, assetsDir, outDir] = positional;
+  if (!scriptPath || !assetsDir || !outDir) {
+    console.error(
+      "Usage: node bake-story.mjs <script.json> <assetsDir> <outDir> [--template basic|advanced]",
+    );
+    process.exit(1);
+  }
+  bake(scriptPath, assetsDir, outDir, template);
 }
-bake(scriptPath, assetsDir, outDir);
+
+const entry = process.argv[1];
+if (entry && import.meta.url === pathToFileURL(path.resolve(entry)).href) {
+  main();
+}

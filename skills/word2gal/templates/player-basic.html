@@ -63,25 +63,52 @@ __THEME_CSS__
         radial-gradient(ellipse at center, transparent 48%, rgba(0,0,0,0.38) 100%),
         linear-gradient(180deg, rgba(255,255,255,0.04), transparent 30%, rgba(0,0,0,0.28) 100%);
     }
-    #sprite {
+    #sprites {
       position: absolute;
-      bottom: 8%;
-      right: 4%;
-      height: min(88vh, 92%);
-      max-width: 48%;
-      object-fit: contain;
-      object-position: bottom center;
+      inset: 0;
       pointer-events: none;
       z-index: 3;
+    }
+    .sprite {
+      position: absolute;
+      bottom: 8%;
+      height: min(88vh, 92%);
+      max-width: 42%;
+      object-fit: contain;
+      object-position: bottom center;
       mix-blend-mode: normal;
       opacity: 0;
-      transform: translateY(10px);
-      transition: opacity 0.28s ease, transform 0.28s ease;
+      transition: opacity 0.28s ease, transform 0.28s ease, filter 0.28s ease;
       filter: drop-shadow(0 16px 28px rgba(0,0,0,0.55));
       image-rendering: auto;
     }
-    #sprite.show { opacity: 1; transform: translateY(0); }
-    #sprite.hidden { display: none; }
+    .sprite.side-left {
+      left: 2%;
+      right: auto;
+      transform: translateY(10px);
+    }
+    .sprite.side-right {
+      right: 2%;
+      left: auto;
+      transform: translateY(10px);
+    }
+    .sprite.show { opacity: 0.55; transform: translateY(0); }
+    .sprite.show.active {
+      opacity: 1;
+      filter: drop-shadow(0 16px 28px rgba(0,0,0,0.55)) brightness(1.05);
+      z-index: 4;
+    }
+    .sprite.hidden { display: none; }
+    #stage.fx-fade { animation: w2g-fade 0.45s ease; }
+    #stage.fx-shake { animation: w2g-shake 0.35s linear; }
+    @keyframes w2g-fade {
+      from { filter: brightness(0.25); } to { filter: none; }
+    }
+    @keyframes w2g-shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
     #ui {
       position: absolute;
       left: 0; right: 0; bottom: 0;
@@ -287,8 +314,9 @@ __THEME_CSS__
     }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @media (max-width: 720px) {
-      #sprite { right: 50%; transform: translateX(50%); max-width: 85%; height: 62%; bottom: 20%; }
-      #sprite.show { transform: translateX(50%); }
+      .sprite { max-width: 48%; height: 58%; bottom: 22%; }
+      .sprite.side-left { left: 0; }
+      .sprite.side-right { right: 0; }
       #ui { padding: 0 0.75rem 0.85rem; }
       #history-panel { width: 100%; }
     }
@@ -305,7 +333,10 @@ __THEME_CSS__
         <button type="button" id="btn-mute">音效开</button>
       </div>
       <audio id="bgm" loop preload="metadata"></audio>
-      <img id="sprite" class="hidden" alt="" decoding="async" />
+      <div id="sprites" aria-hidden="true">
+        <img id="sprite-left" class="sprite side-left hidden" alt="" decoding="async" />
+        <img id="sprite-right" class="sprite side-right hidden" alt="" decoding="async" />
+      </div>
       <div id="ui">
         <div id="textbox">
           <div id="name"></div>
@@ -374,7 +405,8 @@ __THEME_CSS__
     var historyOpen = false;
 
     var stage = document.getElementById("stage");
-    var sprite = document.getElementById("sprite");
+    var spriteLeft = document.getElementById("sprite-left");
+    var spriteRight = document.getElementById("sprite-right");
     var nameEl = document.getElementById("name");
     var textEl = document.getElementById("text");
     var choicesEl = document.getElementById("choices");
@@ -385,6 +417,11 @@ __THEME_CSS__
     var bgmEl = document.getElementById("bgm");
     var historyOverlay = document.getElementById("history-overlay");
     var historyList = document.getElementById("history-list");
+    /** @type {{ left: string|null, right: string|null }} charId per slot */
+    var stageSlots = { left: null, right: null };
+    /** @type {Record<string, "left"|"right">} */
+    var sideByCharId = {};
+    var lastActiveSide = "left";
 
     function assetUrl(group, key) {
       var bag = assets[group] || {};
@@ -421,38 +458,113 @@ __THEME_CSS__
       stage.style.backgroundImage = url ? 'url("' + url + '")' : "none";
     }
 
-    function setSprite(speaker, emotion) {
+    function pulseFx(cls) {
+      stage.classList.remove("fx-fade", "fx-shake");
+      void stage.offsetWidth;
+      stage.classList.add(cls);
+    }
+
+    function charUrl(id, emotion) {
+      var bag = assets.chars || {};
+      var key = id + "_" + (emotion || "neutral");
+      return bag[key] || bag[id + "_neutral"] || "";
+    }
+
+    function elForSide(side) {
+      return side === "right" ? spriteRight : spriteLeft;
+    }
+
+    function clearSide(side) {
+      var el = elForSide(side);
+      el.classList.remove("show", "active");
+      el.classList.add("hidden");
+      el.removeAttribute("src");
+      var who = stageSlots[side];
+      if (who && sideByCharId[who] === side) delete sideByCharId[who];
+      stageSlots[side] = null;
+    }
+
+    function clearSprites() {
+      clearSide("left");
+      clearSide("right");
+      sideByCharId = {};
+      lastActiveSide = "left";
+    }
+
+    function resolveSide(charId, explicit) {
+      if (explicit === "left" || explicit === "right") {
+        if (sideByCharId[charId] && sideByCharId[charId] !== explicit) {
+          var old = sideByCharId[charId];
+          if (stageSlots[old] === charId) stageSlots[old] = null;
+        }
+        sideByCharId[charId] = explicit;
+        return explicit;
+      }
+      if (sideByCharId[charId]) return sideByCharId[charId];
+      if (!stageSlots.left) {
+        sideByCharId[charId] = "left";
+        return "left";
+      }
+      if (!stageSlots.right) {
+        sideByCharId[charId] = "right";
+        return "right";
+      }
+      var steal = lastActiveSide === "left" ? "right" : "left";
+      var evicted = stageSlots[steal];
+      if (evicted && sideByCharId[evicted] === steal) delete sideByCharId[evicted];
+      sideByCharId[charId] = steal;
+      return steal;
+    }
+
+    function paintSlot(side, charId, emotion, active) {
+      var el = elForSide(side);
+      var url = charUrl(charId, emotion);
+      if (!url) {
+        clearSide(side);
+        return;
+      }
+      var prev = stageSlots[side];
+      if (prev && prev !== charId && sideByCharId[prev] === side) {
+        delete sideByCharId[prev];
+      }
+      stageSlots[side] = charId;
+      el.classList.remove("hidden");
+      function mark() {
+        el.classList.add("show");
+        if (active) el.classList.add("active");
+        else el.classList.remove("active");
+      }
+      if (el.getAttribute("src") !== url) {
+        el.classList.remove("show", "active");
+        el.onload = mark;
+        el.src = url;
+        if (el.complete) mark();
+      } else {
+        mark();
+      }
+    }
+
+    /** @param {string|null} speaker @param {string} [emotion] @param {"left"|"right"|""} [sideHint] */
+    function setSprite(speaker, emotion, sideHint) {
       if (!speaker) {
-        sprite.classList.remove("show");
-        sprite.classList.add("hidden");
-        sprite.removeAttribute("src");
+        spriteLeft.classList.remove("active");
+        spriteRight.classList.remove("active");
         return;
       }
       var id = speakerId(speaker);
       if (!id) {
-        sprite.classList.remove("show");
-        sprite.classList.add("hidden");
-        sprite.removeAttribute("src");
+        spriteLeft.classList.remove("active");
+        spriteRight.classList.remove("active");
         return;
       }
-      var bag = assets.chars || {};
-      var key = id + "_" + (emotion || "neutral");
-      var url = bag[key] || bag[id + "_neutral"] || "";
-      if (!url) {
-        sprite.classList.remove("show");
-        sprite.classList.add("hidden");
-        sprite.removeAttribute("src");
-        return;
-      }
-      sprite.classList.remove("hidden");
-      if (sprite.getAttribute("src") !== url) {
-        sprite.classList.remove("show");
-        sprite.onload = function () { sprite.classList.add("show"); };
-        sprite.src = url;
-        if (sprite.complete) sprite.classList.add("show");
-      } else {
-        sprite.classList.add("show");
-      }
+      var side = resolveSide(id, sideHint || "");
+      if (side === "left" && stageSlots.right === id) clearSide("right");
+      if (side === "right" && stageSlots.left === id) clearSide("left");
+      paintSlot(side, id, emotion || "neutral", true);
+      var other = side === "left" ? "right" : "left";
+      var otherEl = elForSide(other);
+      if (stageSlots[other]) otherEl.classList.remove("active");
+      lastActiveSide = side;
     }
 
     function pushHistory(who, text) {
@@ -613,7 +725,8 @@ __THEME_CSS__
 
       if (node.type === "scene") {
         setBackground(node.background);
-        setSprite(null);
+        clearSprites();
+        pulseFx("fx-fade");
         rebuildHistoryUpTo(node.id);
         typewrite(node.text || "……", null);
         return;
@@ -626,7 +739,8 @@ __THEME_CSS__
       }
       if (node.type === "dialogue") {
         nameEl.textContent = node.speaker || "";
-        setSprite(node.speaker, node.emotion);
+        setSprite(node.speaker, node.emotion, node.side || "");
+        if (node.emotion === "surprise" || node.emotion === "angry") pulseFx("fx-shake");
         playSfx(node.voiceTag, node.id);
         rebuildHistoryUpTo(node.id);
         typewrite(node.text, null);
@@ -640,7 +754,7 @@ __THEME_CSS__
         return;
       }
       if (node.type === "ending") {
-        setSprite(null);
+        clearSprites();
         rebuildHistoryUpTo(node.id);
         typewrite(node.text || "（终）", function () {
           endingTextEl.textContent = "— 结局 —\n" + (node.text || "");
@@ -653,6 +767,7 @@ __THEME_CSS__
       clearType();
       lastSfxNode = null;
       historyLog = [];
+      clearSprites();
       closeHistory();
       endingEl.classList.remove("show");
       endingTextEl.textContent = "";
