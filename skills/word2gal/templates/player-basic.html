@@ -212,6 +212,11 @@ __THEME_CSS__
       font-family: inherit;
     }
     #toolbar button:hover { color: var(--gold); border-color: var(--gold); }
+    #toolbar button.on {
+      color: var(--gold);
+      border-color: var(--gold);
+      background: color-mix(in srgb, var(--panel) 80%, var(--gold));
+    }
     #ending-banner {
       display: none;
       position: absolute; inset: 0;
@@ -330,6 +335,8 @@ __THEME_CSS__
         <button type="button" id="btn-history">历史</button>
         <button type="button" id="btn-save">存档</button>
         <button type="button" id="btn-load">读档</button>
+        <button type="button" id="btn-auto">自动</button>
+        <button type="button" id="btn-skip" title="按住快进（或按住 Ctrl）">快进</button>
         <button type="button" id="btn-mute">音效开</button>
       </div>
       <audio id="bgm" loop preload="metadata"></audio>
@@ -403,8 +410,16 @@ __THEME_CSS__
     var saveKey = "w2g:" + ((script.meta && script.meta.title) || "story");
     var historyLog = [];
     var historyOpen = false;
+    var autoMode = false;
+    var skipHeld = false;
+    var autoTimer = null;
+    var skipTimer = null;
+    var AUTO_DELAY_MS = 1200;
+    var SKIP_INTERVAL_MS = 50;
 
     var stage = document.getElementById("stage");
+    var btnAuto = document.getElementById("btn-auto");
+    var btnSkip = document.getElementById("btn-skip");
     var spriteLeft = document.getElementById("sprite-left");
     var spriteRight = document.getElementById("sprite-right");
     var nameEl = document.getElementById("name");
@@ -611,6 +626,8 @@ __THEME_CSS__
 
     function openHistory() {
       historyOpen = true;
+      setSkipHeld(false);
+      clearAutoTimer();
       renderHistory();
       historyOverlay.classList.add("show");
       historyOverlay.setAttribute("aria-hidden", "false");
@@ -620,10 +637,11 @@ __THEME_CSS__
       historyOpen = false;
       historyOverlay.classList.remove("show");
       historyOverlay.setAttribute("aria-hidden", "true");
+      if (autoMode) scheduleAuto();
     }
 
     function playSfx(tag, nodeId) {
-      if (muted || !tag || !audioUnlocked) return;
+      if (skipHeld || muted || !tag || !audioUnlocked) return;
       if (nodeId && lastSfxNode === nodeId) return;
       var url = assetUrl("sfx", tag);
       if (!url) return;
@@ -633,6 +651,106 @@ __THEME_CSS__
         a.volume = 0.55;
         a.play().catch(function () {});
       } catch (e) {}
+    }
+
+    function clearAutoTimer() {
+      if (autoTimer) {
+        clearTimeout(autoTimer);
+        autoTimer = null;
+      }
+    }
+
+    function clearSkipTimer() {
+      if (skipTimer) {
+        clearTimeout(skipTimer);
+        skipTimer = null;
+      }
+    }
+
+    function isBlockingPlayback() {
+      var node = byId[currentId];
+      if (!node) return true;
+      if (node.type === "choice" || node.type === "ending") return true;
+      if (choicesEl.classList.contains("show")) return true;
+      if (endingEl.classList.contains("show")) return true;
+      return false;
+    }
+
+    function syncAutoButton() {
+      if (!btnAuto) return;
+      btnAuto.textContent = autoMode ? "自动中" : "自动";
+      btnAuto.classList.toggle("on", autoMode);
+    }
+
+    function stopAuto() {
+      autoMode = false;
+      clearAutoTimer();
+      syncAutoButton();
+    }
+
+    function scheduleAuto() {
+      clearAutoTimer();
+      if (!autoMode || skipHeld || historyOpen || typing || isBlockingPlayback()) return;
+      autoTimer = setTimeout(function () {
+        autoTimer = null;
+        if (!autoMode || skipHeld || historyOpen || typing) return;
+        if (isBlockingPlayback()) {
+          stopAuto();
+          return;
+        }
+        advance();
+      }, AUTO_DELAY_MS);
+    }
+
+    function onTextSettled() {
+      if (skipHeld) return;
+      if (autoMode) scheduleAuto();
+    }
+
+    function setSkipHeld(on) {
+      on = !!on;
+      if (on === skipHeld) return;
+      skipHeld = on;
+      if (btnSkip) btnSkip.classList.toggle("on", skipHeld);
+      if (skipHeld) {
+        clearAutoTimer();
+        runSkipTick();
+      } else {
+        clearSkipTimer();
+        if (autoMode) scheduleAuto();
+      }
+    }
+
+    function runSkipTick() {
+      clearSkipTimer();
+      if (!skipHeld || historyOpen) return;
+      if (isBlockingPlayback()) {
+        setSkipHeld(false);
+        stopAuto();
+        return;
+      }
+      audioUnlocked = true;
+      ensureBgm();
+      if (typing) revealText();
+      var node = byId[currentId];
+      if (!node || node.type === "ending" || node.type === "choice") {
+        setSkipHeld(false);
+        stopAuto();
+        return;
+      }
+      var next = order[idx + 1];
+      if (!next) {
+        setSkipHeld(false);
+        return;
+      }
+      gotoNode(next);
+      if (isBlockingPlayback()) {
+        setSkipHeld(false);
+        stopAuto();
+        return;
+      }
+      if (typing) revealText();
+      skipTimer = setTimeout(runSkipTick, SKIP_INTERVAL_MS);
     }
 
     function clearType() {
@@ -645,10 +763,19 @@ __THEME_CSS__
 
     function typewrite(text, done) {
       clearType();
+      clearAutoTimer();
       fullText = text || "";
       textEl.textContent = "";
       if (!fullText) {
         if (done) done();
+        onTextSettled();
+        return;
+      }
+      if (skipHeld) {
+        textEl.textContent = fullText;
+        typing = false;
+        if (done) done();
+        onTextSettled();
         return;
       }
       typing = true;
@@ -659,6 +786,7 @@ __THEME_CSS__
         if (i >= fullText.length) {
           clearType();
           if (done) done();
+          onTextSettled();
         }
       }, 26);
     }
@@ -671,6 +799,8 @@ __THEME_CSS__
     }
 
     function showChoices(options) {
+      setSkipHeld(false);
+      stopAuto();
       hintEl.style.display = "none";
       choicesEl.innerHTML = "";
       options.forEach(function (opt) {
@@ -701,13 +831,17 @@ __THEME_CSS__
 
     function advance() {
       if (historyOpen) return;
+      clearAutoTimer();
       audioUnlocked = true;
       ensureBgm();
       var node = byId[currentId];
       if (node && node.type === "dialogue" && node.voiceTag) {
         playSfx(node.voiceTag, node.id);
       }
-      if (revealText()) return;
+      if (revealText()) {
+        onTextSettled();
+        return;
+      }
       if (choicesEl.classList.contains("show")) return;
       if (!node) return;
       if (node.type === "ending") return;
@@ -754,6 +888,8 @@ __THEME_CSS__
         return;
       }
       if (node.type === "ending") {
+        setSkipHeld(false);
+        stopAuto();
         clearSprites();
         rebuildHistoryUpTo(node.id);
         typewrite(node.text || "（终）", function () {
@@ -765,6 +901,8 @@ __THEME_CSS__
 
     function restartFromStart() {
       clearType();
+      setSkipHeld(false);
+      stopAuto();
       lastSfxNode = null;
       historyLog = [];
       clearSprites();
@@ -828,6 +966,56 @@ __THEME_CSS__
         ensureBgm();
       }
     });
+
+    if (btnAuto) {
+      btnAuto.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        if (autoMode) {
+          stopAuto();
+        } else {
+          autoMode = true;
+          syncAutoButton();
+          audioUnlocked = true;
+          ensureBgm();
+          if (!typing) scheduleAuto();
+        }
+      });
+    }
+
+    function bindSkipHold(el) {
+      if (!el) return;
+      el.addEventListener("pointerdown", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        try { el.setPointerCapture(ev.pointerId); } catch (e) {}
+        setSkipHeld(true);
+      });
+      el.addEventListener("pointerup", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        setSkipHeld(false);
+      });
+      el.addEventListener("pointercancel", function () { setSkipHeld(false); });
+      el.addEventListener("lostpointercapture", function () { setSkipHeld(false); });
+      el.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+      });
+      el.addEventListener("contextmenu", function (ev) { ev.preventDefault(); });
+    }
+    bindSkipHold(btnSkip);
+
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Control" || ev.code === "ControlLeft" || ev.code === "ControlRight") {
+        if (!ev.repeat) setSkipHeld(true);
+      }
+    });
+    document.addEventListener("keyup", function (ev) {
+      if (ev.key === "Control" || ev.code === "ControlLeft" || ev.code === "ControlRight") {
+        setSkipHeld(false);
+      }
+    });
+    window.addEventListener("blur", function () { setSkipHeld(false); });
 
     document.getElementById("btn-history").addEventListener("click", function (ev) {
       ev.stopPropagation();

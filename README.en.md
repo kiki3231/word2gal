@@ -98,6 +98,7 @@ Story source: [Bilibili opus](https://www.bilibili.com/opus/1100588492074778661)
 | Capability | In the HTML |
 |------------|-------------|
 | Stage | Near-fullscreen: background + **dual left/right sprites** (active speaker highlighted) + dialogue box |
+| Auto / Skip | Toolbar **Auto**: ~1.2s after typing, advance; hold **Skip** (or Ctrl) to fast-forward until choice/ending |
 | History | Toolbar **History**: half-panel list of 【speaker】/【narration】 + read text |
 | Sprites | Greenscreen cut by default; dirty plates must not ship; reuse `character-cards/` across chapters |
 | Emotions | 3–5 expressions trimmed to story mood (not a fixed five-pack) |
@@ -237,7 +238,8 @@ word2gal/
 - Greenscreen sprite cut by default — dirty plates must not ship; OC/NPC match in-story style  
 - Vocals must sound human — no impact SFX as laughs/sighs  
 - No full-dialogue TTS  
-- History backlog with 【speaker】 + body text  
+- History backlog with 【speaker】 + body text
+- Auto play via toolbar; hold Skip or Ctrl to fast-forward  
 
 Full rules: [`skills/word2gal/SKILL.md`](skills/word2gal/SKILL.md).
 
