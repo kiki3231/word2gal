@@ -58,7 +58,7 @@ npm install
 
 **怎么选：**
 
-- 优先：对话稳 + 半身立绘清晰、少糊脸串脸  
+- 优先：对话稳 + 全身立绘清晰、少糊脸串脸  
 - 有短音频/口技能力加分，没有也能玩（BGM 自带，拟声可静音）  
 - 名称随厂商常改，以你 Agent 里 **实际能调到的生图能力** 为准  
 
@@ -178,7 +178,7 @@ output/<短目录>/assets/
 | 类别 | 内容 |
 |------|------|
 | **工作流** | 抽取 → 成色 / 拟声清单 → 人物网查 → 剧本校验 → 生图 / 短音 → Bake |
-| **播放器模板** | `player-basic.html` / `player-advanced.html`（原生 HTML/CSS/JS） |
+| **播放器模板** | `player-basic.html`（原生 HTML/CSS/JS） |
 | **UI 主题** | 5 套 mood CSS：warm_daily / bittersweet / tense / hotblood / comedy |
 | **风格包** | `daily-heal` 立绘提示 + 默认占位图 |
 | **BGM** | `music/sad.mp3`、`music/love.mp3` |
@@ -193,7 +193,7 @@ output/<短目录>/assets/
 3. **人物深度分析**：多图对照，锁定年龄段与神态后再出图  
 4. **编译剧本 JSON** → `validate-script.mjs` + `validate-coverage.mjs`  
 5. **生成资源**：立绘（默认绿幕抠图）、场景、短音；写 `speaker-map.json`  
-6. **Bake**：写入模板（`--template basic|advanced`），输出可玩 HTML  
+6. **Bake**：写入 `player-basic.html`，输出可玩 HTML  
 
 高级用户也可在项目根目录手动调用：
 
@@ -203,7 +203,6 @@ node skills/word2gal/scripts/validate-coverage.mjs <source.txt> <script.json>
 node skills/word2gal/scripts/cut-sprite.mjs --mode green --dir <assetsDir>
 node skills/word2gal/scripts/check-sprite-alpha.mjs <assetsDir>
 node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
-# 可选：node …/bake-story.mjs … --template advanced
 ```
 
 ---
@@ -243,7 +242,7 @@ word2gal/
 
 - **只写自然语言**，不填表  
 - **原文保真**：禁止压缩润色对白 / 旁白；只可按节奏切开  
-- **立绘绿幕抠图为准**：残底不上架；路人 / OC 跟同篇原作画风  
+- **立绘绿幕抠图为准**：全身左右位；残底不上架；路人 / OC 跟同篇原作画风  
 - **拟声跟人走**：口技必须是人声；禁止用咚哐冒充笑 / 叹  
 - **不对白全文 TTS**
 - **历史可回看**：【说话人】+ 正文  

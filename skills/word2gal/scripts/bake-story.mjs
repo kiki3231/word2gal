@@ -1,7 +1,7 @@
 /**
  * Bake a playable folder with theme + assets.
  * Usage:
- *   node bake-story.mjs <script.json> <assetsDir> <outDir> [--template basic|advanced]
+ *   node bake-story.mjs <script.json> <assetsDir> <outDir>
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -48,23 +48,17 @@ function titleToFilename(title) {
 
 function parseArgs(argv) {
   const positional = [];
-  let template = "basic";
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
+    // 兼容旧调用；advanced 已移除，一律忽略
     if (a === "--template") {
-      template = String(argv[++i] || "basic").trim();
+      i++;
       continue;
     }
-    if (a.startsWith("--template=")) {
-      template = a.slice("--template=".length).trim();
-      continue;
-    }
+    if (a.startsWith("--template=")) continue;
     positional.push(a);
   }
-  if (template !== "basic" && template !== "advanced") {
-    throw new Error("--template 必须是 basic 或 advanced");
-  }
-  return { positional, template };
+  return { positional };
 }
 
 /** Collect base char ids from keys like `umi_neutral` / `umi_smile`. */
@@ -165,7 +159,7 @@ export function buildSpeakerToId(script, chars, fileMap) {
   return { speakerToId, warnings };
 }
 
-function bake(scriptPath, assetsDir, outDir, template) {
+function bake(scriptPath, assetsDir, outDir) {
   const script = JSON.parse(fs.readFileSync(scriptPath, "utf8"));
   const themeId = resolveTheme(script.meta && script.meta.mood);
   const workTitle = (script.meta && script.meta.title) || "未命名作品";
@@ -175,8 +169,7 @@ function bake(scriptPath, assetsDir, outDir, template) {
     "utf8",
   );
 
-  const templateFile =
-    template === "advanced" ? "player-advanced.html" : "player-basic.html";
+  const templateFile = "player-basic.html";
   const templatePath = path.join(skillRoot, "templates", templateFile);
   if (!fs.existsSync(templatePath)) {
     throw new Error("缺少模板: " + templateFile);
@@ -251,10 +244,6 @@ function bake(scriptPath, assetsDir, outDir, template) {
   }
   if (html.includes("__THEME_CSS__")) {
     html = html.replace("__THEME_CSS__", "\n" + themeCss + "\n    ");
-  } else if (template === "advanced") {
-    console.warn(
-      "warn: advanced 模板无 __THEME_CSS__，已跳过主题注入（请使用已同步的 advanced）",
-    );
   } else {
     throw new Error("player template missing __THEME_CSS__ placeholder");
   }
@@ -273,21 +262,19 @@ function bake(scriptPath, assetsDir, outDir, template) {
   if (fs.existsSync(legacy)) fs.unlinkSync(legacy);
   const outFile = path.join(outDir, htmlName);
   fs.writeFileSync(outFile, html, "utf8");
-  console.log(
-    `baked ${outFile} theme=${themeId} template=${template} title=${workTitle}`,
-  );
+  console.log(`baked ${outFile} theme=${themeId} title=${workTitle}`);
 }
 
 function main() {
-  const { positional, template } = parseArgs(process.argv.slice(2));
+  const { positional } = parseArgs(process.argv.slice(2));
   const [scriptPath, assetsDir, outDir] = positional;
   if (!scriptPath || !assetsDir || !outDir) {
     console.error(
-      "Usage: node bake-story.mjs <script.json> <assetsDir> <outDir> [--template basic|advanced]",
+      "Usage: node bake-story.mjs <script.json> <assetsDir> <outDir>",
     );
     process.exit(1);
   }
-  bake(scriptPath, assetsDir, outDir, template);
+  bake(scriptPath, assetsDir, outDir);
 }
 
 const entry = process.argv[1];

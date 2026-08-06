@@ -22,10 +22,10 @@ Agent Skill：用户交**一篇自然语言文章** → 可玩 HTML 视觉小说
 
 ## 硬约束
 
-- 立绘：**绿幕抠净**（细节见风格包 / `assets-and-bake.md`）；残底不上架
-- **路人/OC 画风锚**：有原作锚原作；无原作/全员 fallback → `style-packs/daily-heal/defaults/anchors/`（女主/男主/路人）；同篇画风 0 差异
+- 立绘：全身左右位；绿幕抠净细则见风格包 / `assets-and-bake.md`；残底不上架
+- **路人/OC 画风锚**：有原作锚原作；无原作/全员 fallback → `style-packs/daily-heal/defaults/anchors/`；同篇画风 0 差异
 - **不串脸**：`speaker-map.json` 或 `meta.speakerMap` 覆盖全部说话人；缺差分只回退同角色 `neutral`
-- **双人舞台**：播放器左右两位立绘；可用 `dialogue.side`；省略则自动分配；说话人高亮
+- **双人舞台**：左右两位全身立绘；可用 `dialogue.side`；省略则自动分配；说话人高亮
 - **生图一律自动确认**：进入制作后立绘/背景/差分全部自动执行，禁止逐张问用户
 - BGM：优先级 `sad` > `happy` > `love`（判定见 `bgm.md`）
 - 禁止改播放器核心 JS；只换 `__SCRIPT_JSON__` / `__ASSETS_JSON__`（及主题占位）
@@ -58,7 +58,7 @@ Agent Skill：用户交**一篇自然语言文章** → 可玩 HTML 视觉小说
 | 剧本结构 | `reference/script-schema.md` |
 | 打包 | `reference/assets-and-bake.md` |
 | 风格包 | `style-packs/daily-heal/prompt.md` |
-| 模板 | `templates/player-basic.html`（加强：`player-advanced.html`） |
+| 模板 | `templates/player-basic.html` |
 
 ## 工作流（按序，不可跳步）
 
@@ -95,28 +95,18 @@ node skills/word2gal/scripts/validate-coverage.mjs <source.txt> <script.json>
 
 ### 5. 生成立绘/背景/拟声
 
-- 风格包 + 参考约束 + ageBand/demeanor；**自动确认连出**
-- 绿幕路径与抠图/抽检：见 `assets-and-bake.md` 与风格包 prompt
+- 风格包（全身立绘）+ 参考约束 + ageBand/demeanor；**自动确认连出**
+- 绿幕/抠图/抽检：见 `assets-and-bake.md` 与风格包 prompt
 - 拟声：见 `emotion-and-sfx.md`；失败 ≤2 → defaults/静音
 
 ### 6. Bake
 
 ```bash
 node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
-# 模式二：
-node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir> --template advanced
 ```
 
 仅替换占位符（主题见 `ui-themes.md`）。输出 `output/<短目录>/《作品名》.html`（作品名=`meta.title`，禁止一律 `index.html`）。
 
 ### 7. 交付前自检
 
-- [ ] 主要角色/场景/对话进流程；`validate-coverage` OK；未改写浓缩
-- [ ] 主角有形象来源；角色卡已落盘；续章复用同一 id；年龄/神态合理；无串脸
-- [ ] 立绘绿幕抠净 + alpha 抽检 + 目视无残底；路人/OC 画风与同篇一致
-- [ ] `speaker-map` 全覆盖；差分⊆成色；拟声⊆文章；无全文 TTS
-- [ ] 校验通过；缺资源有回退；可玩（双人同框正常）；自然语言摘要
-
-## 模式二
-
-`bake-story.mjs … --template advanced`（与 basic 同双人舞台/主题；缺模板则 basic 并说明）。
+完整清单见 `assets-and-bake.md`「自检清单」。交付前至少确认：覆盖校验 OK、角色卡落盘无串脸、立绘抠净、speaker-map 全覆盖、可玩。

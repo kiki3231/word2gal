@@ -4,9 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Word2Gal</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
   <style>
     /* 基础布局：近全屏；主题变量见下方注入块 */
     :root {
@@ -26,7 +23,7 @@ __THEME_CSS__
     * { box-sizing: border-box; }
     html, body {
       margin: 0; height: 100%; width: 100%;
-      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+      font-family: "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans SC", sans-serif;
       background: var(--page-bg);
       color: var(--ink);
       user-select: none;
@@ -71,26 +68,27 @@ __THEME_CSS__
     }
     .sprite {
       position: absolute;
-      bottom: 8%;
-      height: min(88vh, 92%);
-      max-width: 42%;
+      bottom: 0;
+      height: min(96vh, 100%);
+      max-width: 38%;
+      width: auto;
       object-fit: contain;
       object-position: bottom center;
       mix-blend-mode: normal;
       opacity: 0;
       transition: opacity 0.28s ease, transform 0.28s ease, filter 0.28s ease;
-      filter: drop-shadow(0 16px 28px rgba(0,0,0,0.55));
+      filter: drop-shadow(0 12px 22px rgba(0,0,0,0.5));
       image-rendering: auto;
     }
     .sprite.side-left {
-      left: 2%;
+      left: 0;
       right: auto;
-      transform: translateY(10px);
+      transform: translateY(8px);
     }
     .sprite.side-right {
-      right: 2%;
+      right: 0;
       left: auto;
-      transform: translateY(10px);
+      transform: translateY(8px);
     }
     .sprite.show { opacity: 0.55; transform: translateY(0); }
     .sprite.show.active {
@@ -113,6 +111,7 @@ __THEME_CSS__
       position: absolute;
       left: 0; right: 0; bottom: 0;
       padding: 0 clamp(1.2rem, 3vw, 2.5rem) clamp(1.2rem, 2.5vh, 2rem);
+      padding-right: clamp(5.5rem, 12vw, 7.5rem);
       z-index: 5;
     }
     #textbox {
@@ -138,7 +137,7 @@ __THEME_CSS__
     }
     #name {
       display: inline-block;
-      font-family: "Noto Serif SC", "Noto Sans SC", serif;
+      font-family: "Songti SC", "SimSun", "Noto Serif SC", serif;
       font-weight: 700;
       letter-spacing: 0.12em;
       color: var(--name-ink);
@@ -152,7 +151,7 @@ __THEME_CSS__
     }
     #name:empty { display: none; }
     #text {
-      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei UI", sans-serif;
+      font-family: inherit;
       font-size: clamp(1.12rem, 2vw, 1.4rem);
       font-weight: 500;
       line-height: 1.9;
@@ -196,26 +195,36 @@ __THEME_CSS__
     }
     #toolbar {
       position: absolute;
-      top: 1rem; right: 1rem;
-      display: flex; gap: 0.45rem;
+      right: 0.55rem;
+      bottom: clamp(1.1rem, 2.8vh, 2.2rem);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.28rem;
       z-index: 6;
+      width: 4.6rem;
     }
     #toolbar button {
-      border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
-      border-radius: 999px;
-      padding: 0.42rem 0.95rem;
-      background: color-mix(in srgb, var(--panel) 92%, #000);
-      color: var(--ink-dim);
-      font-size: 0.88rem;
+      border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+      border-radius: 4px;
+      padding: 0.28rem 0.35rem;
+      background: color-mix(in srgb, var(--panel) 94%, #1a3a6e);
+      color: var(--ink);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
       cursor: pointer;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(6px);
       font-family: inherit;
+      text-align: center;
+      white-space: nowrap;
     }
-    #toolbar button:hover { color: var(--gold); border-color: var(--gold); }
+    #toolbar button:hover { color: #fff; border-color: var(--gold); }
     #toolbar button.on {
-      color: var(--gold);
+      color: #fff;
       border-color: var(--gold);
-      background: color-mix(in srgb, var(--panel) 80%, var(--gold));
+      background: color-mix(in srgb, var(--panel) 70%, var(--gold));
     }
     #ending-banner {
       display: none;
@@ -225,7 +234,7 @@ __THEME_CSS__
       flex-direction: column;
       gap: 1.4rem;
       color: var(--ink);
-      font-family: "Noto Serif SC", serif;
+      font-family: "Songti SC", "SimSun", "Noto Serif SC", serif;
       font-size: clamp(1.3rem, 2.8vw, 1.9rem);
       text-align: center;
       padding: 2rem;
@@ -240,7 +249,7 @@ __THEME_CSS__
       padding: 0.7rem 1.6rem;
       background: color-mix(in srgb, var(--panel) 85%, var(--gold));
       color: var(--ink);
-      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei UI", sans-serif;
+      font-family: inherit;
       font-size: 1.05rem;
       font-weight: 500;
       letter-spacing: 0.08em;
@@ -276,7 +285,7 @@ __THEME_CSS__
       justify-content: space-between;
       padding: 1rem 1.1rem 0.75rem;
       border-bottom: 1px solid color-mix(in srgb, var(--panel-edge) 55%, transparent);
-      font-family: "Noto Serif SC", serif;
+      font-family: "Songti SC", "SimSun", "Noto Serif SC", serif;
       letter-spacing: 0.1em;
       color: var(--gold);
     }
@@ -319,10 +328,12 @@ __THEME_CSS__
     }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @media (max-width: 720px) {
-      .sprite { max-width: 48%; height: 58%; bottom: 22%; }
+      .sprite { max-width: 46%; height: 72%; bottom: 18%; }
       .sprite.side-left { left: 0; }
       .sprite.side-right { right: 0; }
-      #ui { padding: 0 0.75rem 0.85rem; }
+      #ui { padding: 0 0.75rem 0.85rem; padding-right: 4.2rem; }
+      #toolbar { width: 3.6rem; right: 0.35rem; bottom: 0.75rem; }
+      #toolbar button { font-size: 0.58rem; padding: 0.22rem 0.2rem; }
       #history-panel { width: 100%; }
     }
   </style>
@@ -332,12 +343,12 @@ __THEME_CSS__
     <div id="stage">
       <div id="bg-fx" aria-hidden="true"></div>
       <div id="toolbar">
-        <button type="button" id="btn-history">历史</button>
-        <button type="button" id="btn-save">存档</button>
-        <button type="button" id="btn-load">读档</button>
-        <button type="button" id="btn-auto">自动</button>
-        <button type="button" id="btn-skip" title="按住快进（或按住 Ctrl）">快进</button>
-        <button type="button" id="btn-mute">音效开</button>
+        <button type="button" id="btn-auto" title="自动">AUTO</button>
+        <button type="button" id="btn-skip" title="按住快进（或按住 Ctrl）">SKIP</button>
+        <button type="button" id="btn-history" title="历史">LOG</button>
+        <button type="button" id="btn-save" title="存档">SAVE</button>
+        <button type="button" id="btn-load" title="读档">LOAD</button>
+        <button type="button" id="btn-mute" title="音效">MUTE</button>
       </div>
       <audio id="bgm" loop preload="metadata"></audio>
       <div id="sprites" aria-hidden="true">
@@ -678,7 +689,7 @@ __THEME_CSS__
 
     function syncAutoButton() {
       if (!btnAuto) return;
-      btnAuto.textContent = autoMode ? "自动中" : "自动";
+      btnAuto.textContent = autoMode ? "AUTO●" : "AUTO";
       btnAuto.classList.toggle("on", autoMode);
     }
 
@@ -959,7 +970,7 @@ __THEME_CSS__
     document.getElementById("btn-mute").addEventListener("click", function (ev) {
       ev.stopPropagation();
       muted = !muted;
-      ev.currentTarget.textContent = muted ? "音效关" : "音效开";
+      ev.currentTarget.textContent = muted ? "MUTE●" : "MUTE";
       if (muted) {
         if (bgmEl) bgmEl.pause();
       } else {

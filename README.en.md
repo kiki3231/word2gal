@@ -56,7 +56,7 @@ Prefer models (or same-vendor stacks) that can **both orchestrate the Skill and 
 | International | **Gemini** (with Imagen / Nano Banana–class image), **GPT** (with GPT Image), Claude + built-in image tools (e.g. Cursor image gen) |
 | China / CN stacks | **Qwen + Tongyi Wanxiang**, **Doubao / Jimeng (即梦)**, **Zhipu GLM + CogView / Qingying-class image**, **ERNIE + Wenxin Yige**, **Hunyuan** image, **Kolors** (when wired into your Agent) |
 
-**How to choose:** stable chat + clear bust portraits, few face collapses; short SFX is a bonus (bundled BGM still works). Names change often — use whatever image capability your Agent can actually call.
+**How to choose:** stable chat + clear full-body sprites, few face collapses; short SFX is a bonus (bundled BGM still works). Names change often — use whatever image capability your Agent can actually call.
 
 ---
 
@@ -170,7 +170,7 @@ Open the HTML in a browser (BGM may start after the first click).
 | Piece | Contents |
 |-------|----------|
 | **Workflow** | Extract → mood/SFX lists → character lookup → validate → assets → bake |
-| **Player** | `player-basic.html` / `player-advanced.html` (vanilla HTML/CSS/JS) |
+| **Player** | `player-basic.html` (vanilla HTML/CSS/JS) |
 | **Themes** | 5 mood CSS packs |
 | **Style pack** | `daily-heal` prompts + default placeholders |
 | **BGM** | `music/sad.mp3`, `music/love.mp3` |
@@ -185,7 +185,7 @@ Open the HTML in a browser (BGM may start after the first click).
 3. Multi-image character check; lock age band & demeanor  
 4. Compile script JSON → `validate-script.mjs` + `validate-coverage.mjs`  
 5. Generate sprites / backgrounds / short SFX; write `speaker-map.json`  
-6. Bake playable HTML (`--template basic|advanced`)  
+6. Bake playable HTML (`player-basic.html`)  
 
 Optional manual commands from the project root:
 
@@ -195,7 +195,6 @@ node skills/word2gal/scripts/validate-coverage.mjs <source.txt> <script.json>
 node skills/word2gal/scripts/cut-sprite.mjs --mode green --dir <assetsDir>
 node skills/word2gal/scripts/check-sprite-alpha.mjs <assetsDir>
 node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
-# optional: … --template advanced
 ```
 
 ---
@@ -235,7 +234,7 @@ word2gal/
 
 - Natural language only — no forms  
 - Faithful dialogue/narration — split by pacing only  
-- Greenscreen sprite cut by default — dirty plates must not ship; OC/NPC match in-story style  
+- Greenscreen full-body sprites left/right — dirty plates must not ship; OC/NPC match in-story style  
 - Vocals must sound human — no impact SFX as laughs/sighs  
 - No full-dialogue TTS  
 - History backlog with 【speaker】 + body text
