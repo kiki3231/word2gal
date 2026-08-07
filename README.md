@@ -4,19 +4,42 @@
 
 [English](./README.en.md) | 简体中文
 
-> *通过自然语言驱动的视觉小说生成 Skill —— 把一篇同人文章变成可在浏览器里点着玩的 HTML Galgame。*
+> *开源 Agent Skill：把一篇自然语言文章变成可在浏览器里点着玩的 HTML 视觉小说。*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Agent Skill](https://img.shields.io/badge/Agent-Skill-green.svg)](skills/word2gal/SKILL.md)
 [![HTML5](https://img.shields.io/badge/Output-HTML5-orange.svg)](skills/word2gal/templates/)
 
-**不是填表工具，是「文章 → 可玩 HTML」的完整 Agent 工作流。**
+**面向创作者与开发者的开源工具，不是一键消费级 App。**  
+提供 `SKILL.md` + 播放器模板 + Bake 脚本；在 Cursor、Claude Code、Trae、Codex、Kimi Code 等支持 Agent Skills 的环境中，由 Agent 按工作流完成抽取、立绘、拟声与打包。成品质量取决于你选用的 Agent / 生图模型，本仓库不承诺「人人开箱即完美成片」。
 
-提供标准 `SKILL.md` + 播放器模板 + Bake 脚本，配合 Cursor、Claude Code、Trae、Codex、Kimi Code 等支持 Agent Skills 的工具使用，自动完成抽取、立绘、拟声与打包。
-
-[前置条件](#前置条件) · [推荐模型](#推荐模型) · [快速开始](#快速开始) · [成品效果](#成品效果)
+[定位与承诺](#定位与承诺) · [前置条件](#前置条件) · [推荐模型](#推荐模型) · [快速开始](#快速开始) · [成品效果](#成品效果)
 
 </div>
+
+---
+
+## 定位与承诺
+
+| 我们是 | 我们不是 |
+|--------|----------|
+| 可安装的 **Agent Skill** + 校验 / Bake 工具链 | 独立客户端、云端 SaaS、或「粘贴文章即出片」的消费级产品 |
+| 给会用 Agent 的作者 / 开发者做短篇同人 / 试玩原型 | 保证跨模型、跨工具、每次出片观感一致的商业成片流水线 |
+
+**保证尽量做到：**
+
+- 用户侧自然语言输入，不要求填 JSON / 标记语法  
+- 在满足 [前置条件](#前置条件) 时，能跑通「抽取 → 校验 → Bake → 浏览器可玩 HTML」  
+- 素材失败时回退占位图 / 静音，剧情 HTML 仍可打开推进  
+
+**明确不保证：**
+
+- 立绘像不像、是否串脸、抠图一次过 —— 取决于生图模型与 Agent 是否严格执行 Skill  
+- 拟声口技一定生成成功（多数环境会静音回退，剧情仍可玩）  
+- 任意长度长篇、深层多结局、复杂舞台演出  
+- 不支持 Agent Skills、无法执行本地 Node 脚本、或完全无生图能力时的成品质量  
+
+使用与分发时请自行遵守当地法律与平台规则；同人二次创作、生成内容的版权与公开传播风险由使用者自行承担。不宜内容（含 NSFW、涉及未成年人的不当描写等）请勿用于本 Skill。内置 BGM / 默认锚点图仅为仓库演示素材，**对外再分发成品前请自行确认授权**。
 
 ---
 
@@ -43,7 +66,7 @@ npm install
 会装上 [`pngjs`](https://www.npmjs.com/package/pngjs)，供 `cut-sprite.mjs` / `check-sprite-alpha.mjs` 使用。  
 **不需要**再装其它包管理器全局工具；成品 HTML **无**前端 `npm` 依赖，浏览器直接打开即可。
 
-内置 BGM（`music/sad.mp3` / `love.mp3`）已随 Skill 自带。拟声短音若当前 Agent **没有**可靠生音频能力，会静音回退，剧情仍可玩。
+内置 BGM（`music/sad.mp3` / `happy.mp3` / `love.mp3`）已随 Skill 自带。拟声短音若当前 Agent **没有**可靠生音频能力，会静音回退，剧情仍可玩。
 
 ---
 
@@ -78,7 +101,7 @@ npm install
 
 **你不需要**填写 JSON、标记语法或资源路径。
 
-适用于同人网页视觉小说、短篇 gal 化、快速试玩原型等场景。
+适用于同人网页视觉小说、短篇 gal 化、快速试玩原型等场景。期待「零配置、稳定商用成片」请先看 [定位与承诺](#定位与承诺)。
 
 ---
 
@@ -108,11 +131,11 @@ npm install
 | 表情差分 | 按文章成色裁剪 3～5 个（如 smile / soft_shy / surprise），不是固定五件套硬套 |
 | 文本 | 对白 / 旁白 / 内心独白尽量用**原文**，只按节奏切开；交付前 `validate-coverage` |
 | 拟声 | 笑、叹等人口技 + 文中有据的脚步 / 敲门等轻环境音；不对白全文 TTS |
-| BGM | 伤感冷基调 → `sad`；恋爱甜向 → `love`（伤感优先） |
+| BGM | 伤感 → `sad`；欢快/搞笑 → `happy`；恋爱甜向 → `love`（优先级：`sad` > `happy` > `love`） |
 | UI 主题 | 随 `mood` 切换：日常暖 / 虐心 / 悬疑 / 燃 / 搞笑 |
 | 分支 | 文中写明的二选一可做成选项；深层多结局建议拆章 |
 
-素材失败时回退默认占位图 / 静音，但仍保证 **HTML 可玩**。
+素材失败时回退默认占位图 / 静音，剧情 HTML **仍应可打开推进**（观感不保证）。
 
 ### 单次容量（软上限）
 
@@ -129,7 +152,7 @@ npm install
 
 ## 快速开始
 
-确认已看过上方 [前置条件](#前置条件) 与 [推荐模型](#推荐模型)，然后：
+确认已看过 [定位与承诺](#定位与承诺)、[前置条件](#前置条件) 与 [推荐模型](#推荐模型)，然后：
 
 ### 安装
 
@@ -181,7 +204,7 @@ output/<短目录>/assets/
 | **播放器模板** | `player-basic.html`（原生 HTML/CSS/JS） |
 | **UI 主题** | 5 套 mood CSS：warm_daily / bittersweet / tense / hotblood / comedy |
 | **风格包** | `daily-heal` 立绘提示 + 默认占位图 |
-| **BGM** | `music/sad.mp3`、`music/love.mp3` |
+| **BGM** | `music/sad.mp3`、`happy.mp3`、`love.mp3` |
 | **脚本** | validate-script / validate-coverage / cut-sprite / check-alpha / bake-story |
 
 ---
@@ -212,9 +235,10 @@ node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
 | 键名 | 文件 | 何时使用 |
 |------|------|----------|
 | `sad` | `music/sad.mp3` | 伤感、伤心、悲伤、难过、虐心离别等，或 `mood=bittersweet` |
-| `love` | `music/love.mp3` | 恋爱、暗恋、告白、心动等甜向，且未落入伤感主基调 |
+| `happy` | `music/happy.mp3` | 欢快、搞笑、轻松主线等，或 `mood=comedy`（且未落入伤感主基调） |
+| `love` | `music/love.mp3` | 恋爱、暗恋、告白、心动等甜向，且未落入伤感 / 欢快主基调 |
 
-**优先级：伤感 > 恋爱。** 细节见 [`skills/word2gal/reference/bgm.md`](skills/word2gal/reference/bgm.md)。
+**优先级：`sad` > `happy` > `love`。** 细节见 [`skills/word2gal/reference/bgm.md`](skills/word2gal/reference/bgm.md)。
 
 > 内置音乐仅作演示素材；对外分发请自行确认版权。
 
@@ -228,12 +252,12 @@ word2gal/
 ├── LICENSE
 ├── media/demo/                  # README 演示截图
 └── skills/word2gal/
-    ├── SKILL.md                 # Skill 入口（验收标准与工作流）
+    ├── SKILL.md                 # Skill 入口（质量标准与工作流）
     ├── reference/               # 抽取、角色、情绪拟声、BGM、Bake 等规范
     ├── scripts/                 # validate / cut-sprite / check-alpha / bake
     ├── templates/               # 播放器 HTML + mood 主题 CSS
     ├── style-packs/daily-heal/  # 立绘风格提示与默认占位
-    └── music/                   # 内置 BGM（sad / love）
+    └── music/                   # 内置 BGM（sad / happy / love）
 ```
 
 ---
@@ -260,16 +284,9 @@ word2gal/
 
 ---
 
-## 兼容说明
-
-- **需要**：见 [前置条件](#前置条件)；尤其是 Node + `npm install`、生图能力  
-- **不保证**：不支持 Skills、无法跑本地脚本、完全无生图工具的 Agent（成品会很难看或大量占位）  
-
----
-
 ## 开源协议
 
-本项目采用 [MIT License](LICENSE)。
+本项目采用 [MIT License](LICENSE)。软件按「原样」提供，不附带适销性或特定用途适用性等保证；详见许可证正文。使用边界与质量预期见 [定位与承诺](#定位与承诺)。
 
 ---
 

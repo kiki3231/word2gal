@@ -3,13 +3,13 @@
 日系**全身**立绘壳（左右舞台位）。出图时套用；**形象内容**必须来自网查参考或文内回退短参数，不得自由换脸。
 
 **自动确认：** 本包相关文生图一律自动执行并确认，禁止逐张打断用户。  
-抠图 / alpha 抽检命令与上架门槛：见 `reference/assets-and-bake.md`。
+抠图 / alpha 检查命令与上架条件：见 `reference/assets-and-bake.md`。
 
 ## 立绘背景策略（绿幕默认，防白边）
 
-**默认路径：** 真透明优先 → 不合格则绿幕 `#00FF00` 重出 → `cut-sprite.mjs --mode green` → alpha 抽检 + 目视无白/绿毛边。  
+**默认路径：** 真透明优先 → 不合格则绿幕 `#00FF00` 重出 → `cut-sprite.mjs --mode green` → alpha 检查 + 目视无白/绿毛边。  
 **OC / 路人：** 有本篇原作立绘 → 作 `reference_image` 画风锚；无原作/全员 fallback → 用 `defaults/anchors/`（女主/男主/路人）。同篇画风 0 差异。  
-**上架门槛：** 游戏中立绘后必须直接透出场景；残绿/白边/灰底/棋盘格 → 禁止 Bake，重做。
+**上架条件：** 游戏中立绘后必须直接透出场景；残绿/白边/灰底/棋盘格 → 禁止 Bake，重做。
 
 ## 正提示骨架
 
@@ -33,7 +33,7 @@ demeanor: {demeanor}, expression: {emotion_phrase}
 1. 正提示强调无场景底板，**禁止**写 checkerboard / checkered pattern / alpha preview  
 2. **禁止**白底、灰底、棋盘格、地面阴影板、场景背景  
 3. 人物本体实心不透；须全身（勿裁成半身 bust）  
-4. 生图后跑 alpha 抽检；合格可直接整理为 `*_cut.png`，**跳过**绿幕抠图  
+4. 生图后跑 alpha 检查；合格可直接整理为 `*_cut.png`，**跳过**绿幕抠图  
 5. **年龄与神态必须锁死**：小孩↔大人颠倒 → 作废重画  
 
 若有参考图：优先 reference 约束，再叠加短参数与年龄/神态锁。

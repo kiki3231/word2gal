@@ -87,7 +87,7 @@ function normalizeToken(s) {
 }
 
 /**
- * Build speakerToId without demo-specific hardcoding.
+ * Build speakerToId via generic inference (no hardcoded character names).
  * Priority: assets/speaker-map.json → meta.speakerMap → exact id match →
  * unique fuzzy match on id/display tokens. Unmapped speakers are warned.
  */

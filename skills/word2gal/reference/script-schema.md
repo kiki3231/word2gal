@@ -95,7 +95,7 @@ Agent 在 Skill 工作流中生成的剧本结构；**用户不手写此 JSON**�
 
 ```bash
 node skills/word2gal/scripts/validate-script.mjs path/to/script.json
-# 原文覆盖（交付前强制；source 为用户原文纯文本）
+# 原文覆盖（Bake 前须通过；source 为用户原文纯文本）
 node skills/word2gal/scripts/validate-coverage.mjs path/to/source.txt path/to/script.json
 ```
 

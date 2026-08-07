@@ -13,9 +13,9 @@ Agent Skill：用户交**一篇自然语言文章** → 可玩 HTML 视觉小说
 
 **按需打开单篇 `reference/*.md`，禁止无必要全文通读全部 reference。**
 
-## 验收底线（必须满足）
+## 质量标准
 
-1. **抽取成戏**：角色/场景/对话（及文中分支）→ 可玩 HTML；**原文不改写**，只可按节奏切开；交付前跑通 `validate-coverage.mjs`（`extraction.md`）。
+1. **抽取成戏**：角色/场景/对话（及文中分支）→ 可玩 HTML；**原文不改写**，只可按节奏切开；须通过 `validate-coverage.mjs`（`extraction.md`）。
 2. **立绘跟脸**：网查通行长相，**1～2 张对照**并锁年龄/神态后再生成；禁止臆造、小孩↔大人错画、**不串脸**；拆章须复用 `character-cards/`。
 3. **情绪差分**：按文章核心情绪成色裁剪本篇 expressions（非固定五件套）。
 4. **拟声短音**：文章驱动的 `voiceTag`（vocal 口技须人声 + 有据 foley）；规则见 `emotion-and-sfx.md`；禁止全文 TTS、禁止咚哐冒充口技。
@@ -96,7 +96,7 @@ node skills/word2gal/scripts/validate-coverage.mjs <source.txt> <script.json>
 ### 5. 生成立绘/背景/拟声
 
 - 风格包（全身立绘）+ 参考约束 + ageBand/demeanor；**自动确认连出**
-- 绿幕/抠图/抽检：见 `assets-and-bake.md` 与风格包 prompt
+- 绿幕/抠图/alpha 检查：见 `assets-and-bake.md` 与风格包 prompt
 - 拟声：见 `emotion-and-sfx.md`；失败 ≤2 → defaults/静音
 
 ### 6. Bake
@@ -107,6 +107,6 @@ node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
 
 仅替换占位符（主题见 `ui-themes.md`）。输出 `output/<短目录>/《作品名》.html`（作品名=`meta.title`，禁止一律 `index.html`）。
 
-### 7. 交付前自检
+### 7. 交付确认
 
-完整清单见 `assets-and-bake.md`「自检清单」。交付前至少确认：覆盖校验 OK、角色卡落盘无串脸、立绘抠净、speaker-map 全覆盖、可玩。
+完成条件见 `assets-and-bake.md`「交付条件」。至少确认：覆盖校验通过、角色卡落盘无串脸、立绘抠净、speaker-map 全覆盖、成品可玩。

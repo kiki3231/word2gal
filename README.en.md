@@ -4,19 +4,42 @@
 
 English | [简体中文](./README.md)
 
-> *A natural-language-driven visual novel Skill — turn a fanfic draft into a click-to-play HTML galgame.*
+> *An open-source Agent Skill — turn a natural-language story into a click-to-play HTML visual novel.*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Agent Skill](https://img.shields.io/badge/Agent-Skill-green.svg)](skills/word2gal/SKILL.md)
 [![HTML5](https://img.shields.io/badge/Output-HTML5-orange.svg)](skills/word2gal/templates/)
 
-**Not a form filler — a full Agent workflow from story text to playable HTML.**
+**A creator / developer tool — not a one-click consumer app.**  
+Ships `SKILL.md`, a player template, and bake scripts for Cursor, Claude Code, Trae, Codex, Kimi Code, and other Agent Skills hosts. Output quality depends on your Agent and image model; this repo does **not** promise perfect results for every setup.
 
-Ships a standard `SKILL.md`, player templates, and bake scripts. Use it with Cursor, Claude Code, Trae, Codex, Kimi Code, or any tool that supports Agent Skills.
-
-[Prerequisites](#prerequisites) · [Recommended models](#recommended-models) · [Quick start](#quick-start) · [What you get](#what-you-get)
+[Scope & promises](#scope--promises) · [Prerequisites](#prerequisites) · [Recommended models](#recommended-models) · [Quick start](#quick-start) · [What you get](#what-you-get)
 
 </div>
+
+---
+
+## Scope & promises
+
+| This is | This is not |
+|---------|-------------|
+| An installable **Agent Skill** plus validate / bake tooling | A standalone client, cloud SaaS, or “paste story → finished product” consumer app |
+| For authors / developers who already use Agents, for short fanfic / playtest prototypes | A commercial pipeline with identical look across every model and host |
+
+**We aim to provide:**
+
+- Natural-language input on the user side — no JSON / markup forms  
+- With [Prerequisites](#prerequisites) met: a runnable path from extract → validate → bake → browser-playable HTML  
+- Fallback placeholders / silence when assets fail, so the story HTML can still open and advance  
+
+**We do not guarantee:**
+
+- Sprite likeness, face consistency, or clean cutouts on the first try — that depends on the image model and whether the Agent follows the Skill  
+- Successful vocal SFX generation (many hosts fall back to silence; the story stays playable)  
+- Arbitrary-length novels, deep multi-endings, or complex stage direction  
+- Decent output when the host lacks Agent Skills, cannot run local Node scripts, or has no image generation  
+
+Follow local laws and platform rules. Fanfic / derivative-IP risk and any redistribution of generated content are the user’s responsibility. Do not use this Skill for disallowed content (including NSFW or inappropriate depictions involving minors). Bundled BGM and default style anchors are **demo assets** — clear rights before redistributing finished builds.
 
 ---
 
@@ -43,7 +66,7 @@ npm install
 This installs [`pngjs`](https://www.npmjs.com/package/pngjs) for `cut-sprite.mjs` / `check-sprite-alpha.mjs`.  
 No other global package managers. The **output HTML has no frontend npm deps** — open it in a browser.
 
-Bundled BGM (`music/sad.mp3` / `love.mp3`) ships with the Skill. If your Agent **cannot** generate short SFX, vocals stay silent; the story remains playable.
+Bundled BGM (`music/sad.mp3` / `happy.mp3` / `love.mp3`) ships with the Skill. If your Agent **cannot** generate short SFX, vocals stay silent; the story remains playable.
 
 ---
 
@@ -74,7 +97,7 @@ Playable HTML (open in a browser, click to advance)
 
 You do **not** fill JSON, markup DSLs, or asset paths.
 
-Good for fanfic web VNs, short galgame prototypes, and quick playtests.
+Good for fanfic web VNs, short galgame prototypes, and quick playtests. If you expect zero-config commercial polish, read [Scope & promises](#scope--promises) first.
 
 ---
 
@@ -104,11 +127,11 @@ Story source: [Bilibili opus](https://www.bilibili.com/opus/1100588492074778661)
 | Emotions | 3–5 expressions trimmed to story mood (not a fixed five-pack) |
 | Text | Dialogue / narration / inner monologue stay **verbatim**; run `validate-coverage` before bake |
 | SFX | Human vocals (laugh, sigh, …) + evidence-based light foley; no full-dialogue TTS |
-| BGM | Melancholy → `sad`; sweet romance → `love` (`sad` wins) |
+| BGM | Melancholy → `sad`; upbeat/comedy → `happy`; sweet romance → `love` (priority: `sad` > `happy` > `love`) |
 | UI themes | From `mood`: warm daily / bittersweet / tense / hotblood / comedy |
 | Branches | Explicit either-or choices; deep multi-endings should be split by chapter |
 
-Failed assets fall back to defaults / silence; the HTML must still be **playable**.
+Failed assets fall back to defaults / silence; the HTML should still be **playable**.
 
 ### Soft capacity per run
 
@@ -173,7 +196,7 @@ Open the HTML in a browser (BGM may start after the first click).
 | **Player** | `player-basic.html` (vanilla HTML/CSS/JS) |
 | **Themes** | 5 mood CSS packs |
 | **Style pack** | `daily-heal` prompts + default placeholders |
-| **BGM** | `music/sad.mp3`, `music/love.mp3` |
+| **BGM** | `music/sad.mp3`, `happy.mp3`, `love.mp3` |
 | **Scripts** | validate-script / validate-coverage / cut-sprite / check-alpha / bake-story |
 
 ---
@@ -204,9 +227,10 @@ node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
 | Key | File | When |
 |-----|------|------|
 | `sad` | `music/sad.mp3` | Melancholy / bittersweet parting, or `mood=bittersweet` |
-| `love` | `music/love.mp3` | Romance / crush / confession — not mainly melancholy |
+| `happy` | `music/happy.mp3` | Upbeat / comedy / light tone, or `mood=comedy` (when not mainly melancholy) |
+| `love` | `music/love.mp3` | Romance / crush / confession — not mainly melancholy or comedy |
 
-**Priority: `sad` > `love`.** See [`skills/word2gal/reference/bgm.md`](skills/word2gal/reference/bgm.md).
+**Priority: `sad` > `happy` > `love`.** See [`skills/word2gal/reference/bgm.md`](skills/word2gal/reference/bgm.md).
 
 > Bundled tracks are demos; clear rights before redistributing.
 
@@ -220,12 +244,12 @@ word2gal/
 ├── LICENSE
 ├── media/demo/                  # README demo screenshots
 └── skills/word2gal/
-    ├── SKILL.md
+    ├── SKILL.md                 # Skill entry (quality bar + workflow)
     ├── reference/
     ├── scripts/
     ├── templates/
     ├── style-packs/daily-heal/
-    └── music/
+    └── music/                   # Bundled BGM (sad / happy / love)
 ```
 
 ---
@@ -252,16 +276,9 @@ Full rules: [`skills/word2gal/SKILL.md`](skills/word2gal/SKILL.md).
 
 ---
 
-## Compatibility
-
-- **Needs**: see [Prerequisites](#prerequisites) — especially Node + `npm install` and image generation  
-- **Not guaranteed**: Agents without Skills, local scripts, or any image tools (output will look poor / placeholder-heavy)  
-
----
-
 ## License
 
-[MIT License](LICENSE)
+[MIT License](LICENSE). Provided “as is”, without warranty of merchantability or fitness for a particular purpose — see the license text. Scope and quality expectations: [Scope & promises](#scope--promises).
 
 ---
 

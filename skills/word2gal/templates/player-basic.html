@@ -401,7 +401,7 @@ __THEME_CSS__
       script = parseJsonTag("w2g-script");
       assets = parseJsonTag("w2g-assets");
     } catch (e) {
-      document.body.innerHTML = "<pre style='color:#fff;padding:2rem'>Word2Gal: 模板尚未填入剧本/资源。请用 Skill 打包后再打开。\n" + e.message + "</pre>";
+      document.body.innerHTML = "<pre style='color:#fff;padding:2rem'>Word2Gal: 未找到剧本/资源，请先用 Skill 完成 Bake 后再打开。\n" + e.message + "</pre>";
       return;
     }
 

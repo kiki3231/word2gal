@@ -19,7 +19,7 @@
 | `expressions` | **本篇**情绪差分子集（见 `emotion-and-sfx.md`），含 `neutral` |
 | `voiceProfile` | 拟声音色档：`bright_soft` / `calm_low` / `cheerful` / `dark_low` |
 
-## 落盘与跨章复用（强制约定）
+## 落盘与跨章复用
 
 拆章 / 续作时必须复用同一张脸，禁止每章重新「凭印象」建卡。
 
