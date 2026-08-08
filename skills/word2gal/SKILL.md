@@ -17,15 +17,16 @@ Agent Skill：用户交**一篇自然语言文章** → 可玩 HTML 视觉小说
 
 1. **抽取成戏**：角色/场景/对话（及文中分支）→ 可玩 HTML；**原文不改写**，只可按节奏切开；须通过 `validate-coverage.mjs`（`extraction.md`）。
 2. **立绘跟脸**：网查通行长相，**1～2 张对照**并锁年龄/神态后再生成；禁止臆造、小孩↔大人错画、**不串脸**；拆章须复用 `character-cards/`。
-3. **情绪差分**：按文章核心情绪成色裁剪本篇 expressions（非固定五件套）。
+3. **情绪差分**：按文章核心情绪成色裁剪本篇 expressions（非固定五件套）；每张差分 = **脸 + 姿态/手势**（跟文，禁止同一站姿只换脸）。
 4. **拟声短音**：文章驱动的 `voiceTag`（vocal 口技须人声 + 有据 foley）；规则见 `emotion-and-sfx.md`；禁止全文 TTS、禁止咚哐冒充口技。
 
 ## 硬约束
 
-- 立绘：全身左右位；绿幕抠净细则见风格包 / `assets-and-bake.md`；残底不上架
+- 立绘：大腿以上（膝上约中段裁切）左右位；绿幕抠净细则见风格包 / `assets-and-bake.md`；残底不上架
+- **姿态跟文**：默认姿态见风格包；文中有捂嘴/握拳等动作则覆盖默认，写入该 emotion 出图 prompt
 - **路人/OC 画风锚**：有原作锚原作；无原作/全员 fallback → `style-packs/daily-heal/defaults/anchors/`；同篇画风 0 差异
 - **不串脸**：`speaker-map.json` 或 `meta.speakerMap` 覆盖全部说话人；缺差分只回退同角色 `neutral`
-- **双人舞台**：左右两位全身立绘；可用 `dialogue.side`；省略则自动分配；说话人高亮
+- **双人舞台**：左右两位大腿以上立绘；可用 `dialogue.side`；省略则自动分配；说话人高亮
 - **生图一律自动确认**：进入制作后立绘/背景/差分全部自动执行，禁止逐张问用户
 - BGM：优先级 `sad` > `happy` > `love`（判定见 `bgm.md`）
 - 禁止改播放器核心 JS；只换 `__SCRIPT_JSON__` / `__ASSETS_JSON__`（及主题占位）
@@ -69,7 +70,7 @@ Agent Skill：用户交**一篇自然语言文章** → 可玩 HTML 视觉小说
 
 ### 2. 成色 + 差分/拟声 + BGM
 
-按 `emotion-and-sfx.md`：主成色 1 个 → `expressions` 子集（通常 3～5）→ 拟声清单（vocal/foley）。  
+按 `emotion-and-sfx.md`：主成色 1 个 → `expressions` 子集（通常 3～5）→ 各 emotion 姿态依据 → 拟声清单（vocal/foley）。  
 按 `bgm.md` 设 `meta.bgm`（`sad` > `happy` > `love`；否则可不设）。
 
 ### 3. 网查对照 → 角色卡
@@ -95,7 +96,7 @@ node skills/word2gal/scripts/validate-coverage.mjs <source.txt> <script.json>
 
 ### 5. 生成立绘/背景/拟声
 
-- 风格包（全身立绘）+ 参考约束 + ageBand/demeanor；**自动确认连出**
+- 风格包（大腿以上立绘 + 脸与姿态差分）+ 参考约束 + ageBand/demeanor；**自动确认连出**
 - 绿幕/抠图/alpha 检查：见 `assets-and-bake.md` 与风格包 prompt
 - 拟声：见 `emotion-and-sfx.md`；失败 ≤2 → defaults/静音
 

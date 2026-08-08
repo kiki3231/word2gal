@@ -32,6 +32,15 @@
 
 映射到风格包时，未知 emotion 回退 `neutral`。
 
+## B2. 姿态差分（跟文，非只换脸）
+
+每个 emotion 差分 = **脸 + 上半身姿态/手势**。禁止全篇同一站姿只改五官。
+
+1. 裁剪 `expressions` 时，为每个 emotion 写一句**姿态依据**（原文动作优先；无则用风格包默认姿态表）  
+2. 文中有明确动作（捂嘴、握拳、嘟嘴、别过脸、抬手惊讶等）→ **覆盖**该 emotion 的默认姿态，写入出图 prompt 的 `{pose_phrase}`  
+3. 仍共用现有 emotion 键与 `chars.{id}_{emotion}` 命名，**不**为姿态另开 asset 维度  
+4. 交付摘要：列出本篇各 emotion 的姿态依据（原文句或「默认表」）
+
 ## C. 拟声短音（非 TTS）
 
 允许 **vocal（口技）** 与 **foley（轻环境音）** 两类；均须文中有依据，禁止全文 TTS。
@@ -83,4 +92,5 @@
 
 - 角色卡：`expressions` = 本篇清单（可角色共用同一情绪包）  
 - 剧本：每句 dialogue 的 emotion/voiceTag 来自清单  
-- 交付摘要：用自然语言说明「成色=…；差分=…；拟声(vocal)=…；拟声(foley)=…」（拟声项含 kind 与原文依据句）
+- 出图：每个 emotion 带风格包 `emotion_phrase` + `pose_phrase`（文驱覆盖见 B2）  
+- 交付摘要：用自然语言说明「成色=…；差分=…；姿态=…；拟声(vocal)=…；拟声(foley)=…」（拟声项含 kind 与原文依据句）
