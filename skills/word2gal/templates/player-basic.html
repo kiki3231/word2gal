@@ -529,9 +529,10 @@ __THEME_CSS__
 
     function resolveSide(charId, explicit) {
       if (explicit === "left" || explicit === "right") {
+        // 换侧时必须清掉旧槽 DOM；只 null 记账会导致另一侧残留半透明幽灵立绘
         if (sideByCharId[charId] && sideByCharId[charId] !== explicit) {
           var old = sideByCharId[charId];
-          if (stageSlots[old] === charId) stageSlots[old] = null;
+          if (stageSlots[old] === charId) clearSide(old);
         }
         sideByCharId[charId] = explicit;
         return explicit;
@@ -546,8 +547,8 @@ __THEME_CSS__
         return "right";
       }
       var steal = lastActiveSide === "left" ? "right" : "left";
-      var evicted = stageSlots[steal];
-      if (evicted && sideByCharId[evicted] === steal) delete sideByCharId[evicted];
+      // 挤占槽位时同步卸下被挤出角色的 DOM，避免残影
+      if (stageSlots[steal]) clearSide(steal);
       sideByCharId[charId] = steal;
       return steal;
     }

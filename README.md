@@ -111,14 +111,14 @@ npm install
 
 <div align="center">
 
-| 营地夜谈 | 天台闪回 |
+| 羽泽咖啡店 | 彩的卧室 |
 |:---:|:---:|
-| <img src="media/demo/demo-camp.png" alt="营地夜谈演示" width="420" /> | <img src="media/demo/demo-rooftop.png" alt="天台闪回演示" width="420" /> |
+| <img src="media/demo/demo-camp.png" alt="羽泽咖啡店双人舞台演示" width="420" /> | <img src="media/demo/demo-rooftop.png" alt="彩的卧室夜景演示" width="420" /> |
 
-<img src="media/demo/demo-history.png" alt="历史记录面板" width="720" />
+<img src="media/demo/demo-history.png" alt="事务所晨练演示" width="720" />
 
-<sub>演示作《启明星》：场景立绘 · 说话人名牌 · 历史 / 自动 / 快进<br />
-文章来源：[Bilibili 动态 / 专栏 opus](https://www.bilibili.com/opus/1100588492074778661)</sub>
+<sub>演示作《离远一些也好》：场景立绘 · 说话人名牌 · 左右双人舞台 · 历史 / 自动 / 快进<br />
+文章来源：[Bilibili 动态 / 专栏 opus](https://www.bilibili.com/opus/534517321469308913?spm_id_from=333.337.0.0)</sub>
 
 </div>
 
