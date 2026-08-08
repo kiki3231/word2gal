@@ -1,6 +1,6 @@
 # Style Pack: daily-heal
 
-日系**大腿以上**立绘壳（左右舞台位，膝上约中段裁切）。出图时套用；**形象内容**必须来自网查参考或文内回退短参数，不得自由换脸。
+日系**七分身（cowboy shot）**立绘壳：左右前景对位，头～大腿中段；对白框将遮下缘（见 `reference/stage-layout.md`）。出图时套用；**形象内容**必须来自网查参考或文内回退短参数，不得自由换脸。
 
 **自动确认：** 本包相关文生图一律自动执行并确认，禁止逐张打断用户。  
 抠图 / alpha 检查命令与上架条件：见 `reference/assets-and-bake.md`。
@@ -17,8 +17,10 @@
 
 ```
 anime style, visual novel character sprite,
-thighs-up framing, mid-thigh crop, head to mid-thigh visible,
-upper body and thighs in frame, no feet, no shoes visible,
+cowboy shot, thighs-up galgame standing sprite,
+head to mid-thigh visible, dialogue-box crop friendly,
+hand gestures kept in upper torso and face zone,
+no feet, no shoes visible,
 clean lineart, soft lighting,
 isolated character on empty plain backdrop, no scenery, no floor,
 looking at viewer, consistent character design,
@@ -34,8 +36,8 @@ demeanor: {demeanor}, expression: {emotion_phrase}, pose: {pose_phrase}
 
 1. 正提示强调无场景底板，**禁止**写 checkerboard / checkered pattern / alpha preview  
 2. **禁止**白底、灰底、棋盘格、地面阴影板、场景背景  
-3. 人物本体实心不透；取景为**大腿以上**（头～大腿中段）；禁止从头到脚全身，禁止只到腰/胸的 bust  
-4. 每张差分须含与 emotion 匹配的**姿态/手势**，禁止全篇同一站姿只换脸  
+3. 人物本体实心不透；取景为**七分身**（头～大腿中段）；禁止从头到脚全身，禁止只到腰/胸的 bust  
+4. 每张差分须含与 emotion 匹配的**姿态/手势**，且手势在胸～脸高度（对白框会遮下缘）；禁止全篇同一站姿只换脸  
 5. 生图后跑 alpha 检查；合格可直接整理为 `*_cut.png`，**跳过**绿幕抠图  
 6. **年龄与神态必须锁死**：小孩↔大人颠倒 → 作废重画  
 
@@ -47,8 +49,10 @@ demeanor: {demeanor}, expression: {emotion_phrase}, pose: {pose_phrase}
 
 ```
 anime style, visual novel character sprite,
-thighs-up framing, mid-thigh crop, head to mid-thigh visible,
-upper body and thighs in frame, no feet, no shoes visible,
+cowboy shot, thighs-up galgame standing sprite,
+head to mid-thigh visible, dialogue-box crop friendly,
+hand gestures kept in upper torso and face zone,
+no feet, no shoes visible,
 clean lineart, soft lighting,
 solid pure chroma key green background #00FF00,
 flat even green screen behind character, no gradient on background,
@@ -72,6 +76,7 @@ wrong age, age mismatch, child as adult, adult as child,
 chibi, loli, shota (unless ageBand is child),
 full body head to toe, feet visible, shoes visible, standing on floor,
 bust shot, chest-up only, cropped at waist, close-up portrait,
+hands dangling at bottom of frame only, gesture below waist,
 same idle standing pose for every emotion, face-swap only,
 checkerboard, checkered pattern, alpha preview,
 white background, gray background, black background, gradient background,
@@ -87,20 +92,20 @@ crowded background, speech bubble, translucent body
 
 ## 表情与姿态短语（按本篇清单选用）
 
-| emotion | emotion_phrase | pose_phrase（默认；文有动作则覆盖） |
-|---------|----------------|-------------------------------------|
-| neutral | calm neutral face | relaxed arms at sides, composed posture |
-| smile | soft smile | one hand lightly near chest or soft open gesture |
-| laugh | bright laughing face | hand near mouth or light cheerful gesture |
-| surprise | surprised open eyes | hands raised near chest, startled lean |
-| sad | sad downturned eyes | arms loosely held, shoulders slightly down |
+| emotion | emotion_phrase | pose_phrase（默认；须在胸～脸可读区；文有动作则覆盖） |
+|---------|----------------|--------------------------------------------------------|
+| neutral | calm neutral face | composed posture, hands near waist-upper or lightly clasped at mid torso |
+| smile | soft smile | one hand lightly near chest or soft open gesture at chest height |
+| laugh | bright laughing face | hand near mouth or light cheerful gesture at face height |
+| surprise | surprised open eyes | hands raised near chest or beside face, startled lean |
+| sad | sad downturned eyes | one hand near collarbone, shoulders slightly down |
 | cry | tearful crying face | wiping tears or hands clasped near face |
-| angry | mild frown angry, pout | clenched fists at sides or tightly held |
-| tense | uneasy tense expression | arms crossed or hands gripping own sleeve |
+| angry | mild frown angry, pout | clenched fists raised to mid torso or on hips |
+| tense | uneasy tense expression | arms crossed on chest or hands gripping own sleeve at chest |
 | soft_shy | shy soft blush | hand covering mouth or fingers near lips, bashful |
 
 未列出的 emotion → 回退 neutral（脸+姿态）。  
-**文驱覆盖示例：** 文写「嘟嘴握拳」→ angry 用 `pouting, both fists clenched`；文写「捂嘴娇羞」→ soft_shy 用 `covering mouth with one hand, heavy blush`。
+**文驱覆盖示例：** 文写「嘟嘴握拳」→ angry 用 `pouting, fists clenched at mid torso`；文写「捂嘴娇羞」→ soft_shy 用 `covering mouth with one hand, heavy blush`。
 
 ## 抠图（回退时必做）
 
@@ -109,7 +114,7 @@ crowded background, speech bubble, translucent body
 ## UI 提示
 
 本包偏日常暖光；若 `meta.mood` 为 bittersweet/tense，背景与色调应随之偏冷/偏暗（仍用同一立绘规范）。  
-播放器舞台按大腿以上立绘取景（见 `templates/player-basic.html`）。
+播放器按七分身左右对位取景，对白框遮立绘下缘（见 `templates/player-basic.html`、`reference/stage-layout.md`）。
 
 ## 失败回退
 

@@ -66,15 +66,15 @@ __THEME_CSS__
       pointer-events: none;
       z-index: 3;
     }
-    /* 大腿以上立绘：主体填满对白框上方舞台，脚底不入画 */
+    /* 七分身左右对位：头近舞台顶，下缘探入对白框由 #ui 遮挡 */
     .sprite {
       position: absolute;
-      bottom: 14%;
-      height: min(88vh, 92%);
-      max-width: 42%;
+      bottom: -2%;
+      height: min(102vh, 108%);
+      max-width: 46%;
       width: auto;
       object-fit: contain;
-      object-position: center 28%;
+      object-position: center top;
       mix-blend-mode: normal;
       opacity: 0;
       transition: opacity 0.28s ease, transform 0.28s ease, filter 0.28s ease;
@@ -82,18 +82,25 @@ __THEME_CSS__
       image-rendering: auto;
     }
     .sprite.side-left {
-      left: 0;
+      left: 1%;
       right: auto;
-      transform: translateY(6px);
+      transform: translateY(8px) scale(0.96);
+      transform-origin: bottom center;
     }
     .sprite.side-right {
-      right: 0;
+      right: 1%;
       left: auto;
-      transform: translateY(6px);
+      transform: translateY(8px) scale(0.96);
+      transform-origin: bottom center;
     }
-    .sprite.show { opacity: 0.55; transform: translateY(0); }
+    .sprite.show {
+      opacity: 0.52;
+      transform: translateY(0) scale(0.96);
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.45)) brightness(0.92);
+    }
     .sprite.show.active {
       opacity: 1;
+      transform: translateY(0) scale(1);
       filter: drop-shadow(0 16px 28px rgba(0,0,0,0.55)) brightness(1.05);
       z-index: 4;
     }
@@ -329,9 +336,11 @@ __THEME_CSS__
     }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @media (max-width: 720px) {
-      .sprite { max-width: 50%; height: 78%; bottom: 16%; object-position: center 30%; }
+      .sprite { max-width: 52%; height: 100%; bottom: -1%; object-position: center top; }
       .sprite.side-left { left: 0; }
       .sprite.side-right { right: 0; }
+      .sprite.show { transform: translateY(0) scale(0.95); }
+      .sprite.show.active { transform: translateY(0) scale(1); }
       #ui { padding: 0 0.75rem 0.85rem; padding-right: 4.2rem; }
       #toolbar { width: 3.6rem; right: 0.35rem; bottom: 0.75rem; }
       #toolbar button { font-size: 0.58rem; padding: 0.22rem 0.2rem; }

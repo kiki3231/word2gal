@@ -80,7 +80,7 @@
 
 ### 5. 出图（带年龄与神态锁）
 
-**自动确认 / 大腿以上立绘提示：** 见 `SKILL.md` 硬约束与 `style-packs/daily-heal/prompt.md`。
+**自动确认 / 七分身立绘提示：** 见 `SKILL.md` 硬约束、`reference/stage-layout.md` 与 `style-packs/daily-heal/prompt.md`。
 
 1. 有主参考图 → 以参考图约束为主，再叠加短参数与 `ageBand` 对应英文年龄提示  
 2. 无参考图但有检索要点 → 短参数 + 年龄/神态锁 + 风格包  
@@ -107,7 +107,7 @@
 - [ ] 发型/发色/瞳色/标志物与 `invariants` 一致  
 - [ ] neutral 神态符合 `demeanor`  
 - [ ] 差分姿态与本篇该 emotion 依据一致（非全员同一站姿只换脸）  
-- [ ] 取景为大腿以上（可见头～大腿中段；勿露脚底全身，勿裁成仅胸像 bust）  
+- [ ] 取景为七分身（头～大腿中段；手势在胸～脸；勿露脚底全身，勿裁成仅胸像 bust）  
 - [ ] 与文内 `appearanceClues` 无硬冲突  
 
 不通过：调整 prompt/换更清晰参考图后重生成，**禁止**带着明显错误进入 Bake。
@@ -138,4 +138,4 @@ lookup = offline 或 fallback
      - 男主向 / 男性主角 → `style-packs/daily-heal/defaults/anchors/anchor_hero.png`  
      - 其它 / 无名路人 → `style-packs/daily-heal/defaults/anchors/anchor_npc.png`  
 3. 出图：风格包绿幕骨架 + styleAnchor 参考 + OC 短参数；只改身份特征，不改线稿/瞳孔高光/上色体系  
-4. 出图后与锚角色并排对照：画风分裂 → 重生；禁止写实风、厚涂异画风、Q 版混入大腿以上立绘戏
+4. 出图后与锚角色并排对照：画风分裂 → 重生；禁止写实风、厚涂异画风、Q 版混入七分身立绘戏

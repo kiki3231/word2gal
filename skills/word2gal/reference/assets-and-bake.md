@@ -24,7 +24,7 @@
 ## 生成顺序
 
 1. 已完成抽取、成色、网查角色卡
-2. 为本篇 `expressions` 生成**大腿以上**差分立绘（脸+姿态跟文）——真透明优先（见 `style-packs/daily-heal/prompt.md`）；**自动确认连出**
+2. 为本篇 `expressions` 生成**七分身**差分立绘（脸+姿态跟文，站位见 `stage-layout.md`）——真透明优先（见 `style-packs/daily-heal/prompt.md`）；**自动确认连出**
 3. 实心底/假透明时：绿幕 `#00FF00` 重出 + `cut-sprite.mjs --mode green` → `*_cut.png`（浅灰白底才用 `--mode flood`）
 4. `check-sprite-alpha.mjs <assetsDir>`（仅拦全不透明底板）+ **目视**无残底
 5. 本篇拟声清单（见 `emotion-and-sfx.md`）
@@ -46,7 +46,7 @@ node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
 1. `validate-script.mjs` + `validate-coverage.mjs` 通过
 2. 读取 `templates/player-basic.html`；**仅**替换 `__SCRIPT_JSON__` / `__ASSETS_JSON__` / `__THEME_ID__` / `__THEME_CSS__`
 3. 有 `meta.bgm`：`music/<key>.mp3` → `assets/bgm/<key>.mp3` + 写入 `assets.bgm`
-4. 舞台为左右大腿以上立绘（`#sprite-left` / `#sprite-right`）；禁止立绘叠底 blend
+4. 舞台为七分身左右对位（`#sprite-left` / `#sprite-right`）；立绘下缘由对白框遮挡；禁止立绘叠底 blend
 5. 输出 `output/<短目录>/<作品名>.html` + `assets/`（作品名=`meta.title`，勿用 `index.html`）
 6. `speaker-map.json`（或 `meta.speakerMap`）覆盖全部 `dialogue.speaker`
 
@@ -57,4 +57,4 @@ node skills/word2gal/scripts/bake-story.mjs <script.json> <assetsDir> <outDir>
 - 未要求用户填格式；主角注明 lookup；原文覆盖通过（`extraction.md`）
 - 差分 ⊆ 成色；拟声 ⊆ 文章（vocal+foley）；无全文 TTS / 咚哐顶替口技
 - 立绘真透明或绿幕抠净；`check-sprite-alpha` 通过；目视无残底
-- 主题与 mood 一致；有据 BGM；校验通过；可玩（左右大腿以上同框正常）；摘要说明回退
+- 主题与 mood 一致；有据 BGM；校验通过；可玩（七分身左右对位、对白框遮下缘正常）；摘要说明回退
